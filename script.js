@@ -1056,12 +1056,17 @@ const rowActionModalEl = document.getElementById('rowActionModal');
 const rowActionTimeBtn = document.getElementById('rowActionTimeBtn');
 const rowActionDeleteBtn = document.getElementById('rowActionDeleteBtn');
 const rowActionNoteBtn = document.getElementById('rowActionNoteBtn');
+const rowMoveUpBtn = document.getElementById('rowMoveUpBtn');
+const rowMoveDownBtn = document.getElementById('rowMoveDownBtn');
 let rowActionModal = null;
 if (rowActionModalEl) {
   rowActionModal = bootstrap.Modal.getOrCreateInstance(rowActionModalEl);
 }
 function openRowActionModal(index) {
   currentRowActionIndex = index;
+  // Cập nhật enable/disable cho move up/down
+  if (rowMoveUpBtn) rowMoveUpBtn.disabled = (index === 0);
+  if (rowMoveDownBtn) rowMoveDownBtn.disabled = (index === carList.length - 1);
   if (rowActionModal) rowActionModal.show();
 }
 if (rowActionTimeBtn) {
@@ -1088,6 +1093,34 @@ if (rowActionNoteBtn) {
       }
     }
     if (rowActionModal) rowActionModal.hide();
+  };
+}
+
+// Thêm sự kiện cho nút Move Up/Down
+if (rowMoveUpBtn) {
+  rowMoveUpBtn.onclick = function() {
+    if (currentRowActionIndex !== null && currentRowActionIndex > 0) {
+      // Di chuyển xe lên
+      const temp = carList[currentRowActionIndex];
+      carList[currentRowActionIndex] = carList[currentRowActionIndex - 1];
+      carList[currentRowActionIndex - 1] = temp;
+      saveCarListToStorage(false);
+      renderCarList();
+      openRowActionModal(currentRowActionIndex - 1);
+    }
+  };
+}
+if (rowMoveDownBtn) {
+  rowMoveDownBtn.onclick = function() {
+    if (currentRowActionIndex !== null && currentRowActionIndex < carList.length - 1) {
+      // Di chuyển xe xuống
+      const temp = carList[currentRowActionIndex];
+      carList[currentRowActionIndex] = carList[currentRowActionIndex + 1];
+      carList[currentRowActionIndex + 1] = temp;
+      saveCarListToStorage(false);
+      renderCarList();
+      openRowActionModal(currentRowActionIndex + 1);
+    }
   };
 }
 
