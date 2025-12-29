@@ -524,6 +524,51 @@ body {
 #car-list tbody tr.row-selected {
   position: relative;
 }
+
+/* Animation dòng đang được move lên/xuống */
+.car-row-moved {
+  animation: rowMoveHighlight 0.6s ease-in;
+  background-color: #fff49a !important;
+}
+
+@keyframes rowMoveHighlight {
+  0%   { background-color: #fff49a; }
+  70%  { background-color: #fff49a; }
+  100% { background-color: inherit; }
+}
+
+/* Slide out/in animation for moving rows */
+.car-row-slide-up {
+  animation: rowSlideUpOut 0.3s ease-in forwards;
+}
+.car-row-slide-down {
+  animation: rowSlideDownOut 0.3s ease-in forwards;
+}
+.car-row-slide-in-up {
+  animation: rowSlideInUp 0.3s ease-out;
+}
+.car-row-slide-in-down {
+  animation: rowSlideInDown 0.3s ease-out;
+}
+
+@keyframes rowSlideUpOut {
+ 0%   { opacity: 1; transform: translateY(0); }
+ 99%  { opacity: 0; transform: translateY(-40px); }
+ 100% { opacity: 0; transform: translateY(-40px); }
+}
+@keyframes rowSlideDownOut {
+ 0%   { opacity: 1; transform: translateY(0); }
+ 99%  { opacity: 0; transform: translateY(40px); }
+ 100% { opacity: 0; transform: translateY(40px); }
+}
+@keyframes rowSlideInUp {
+ 0%   { opacity: 0; transform: translateY(40px); }
+ 100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes rowSlideInDown {
+ 0%   { opacity: 0; transform: translateY(-40px); }
+ 100% { opacity: 1; transform: translateY(0); }
+}
 #car-list tbody tr.duplicate-overdue {
   position: relative;
 }

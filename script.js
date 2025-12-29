@@ -1100,26 +1100,55 @@ if (rowActionNoteBtn) {
 if (rowMoveUpBtn) {
   rowMoveUpBtn.onclick = function() {
     if (currentRowActionIndex !== null && currentRowActionIndex > 0) {
-      // Di chuyển xe lên
-      const temp = carList[currentRowActionIndex];
-      carList[currentRowActionIndex] = carList[currentRowActionIndex - 1];
-      carList[currentRowActionIndex - 1] = temp;
-      saveCarListToStorage(false);
-      renderCarList();
-      openRowActionModal(currentRowActionIndex - 1);
+      // Thêm hiệu ứng slide out cho dòng hiện tại
+      const tbody = document.getElementById('car-list').getElementsByTagName('tbody')[0];
+      const row = tbody.rows[currentRowActionIndex];
+      if (row) {
+        row.classList.add('car-row-slide-up');
+      }
+      // Đợi animation rồi đổi thứ tự/move in
+      setTimeout(() => {
+        const temp = carList[currentRowActionIndex];
+        carList[currentRowActionIndex] = carList[currentRowActionIndex - 1];
+        carList[currentRowActionIndex - 1] = temp;
+        saveCarListToStorage(false);
+        renderCarList();
+        // Hiệu ứng trượt vào
+        const tbodyNew = document.getElementById('car-list').getElementsByTagName('tbody')[0];
+        const rowNew = tbodyNew.rows[currentRowActionIndex - 1];
+        if (rowNew) {
+          rowNew.classList.add('car-row-slide-in-up');
+          setTimeout(() => rowNew.classList.remove('car-row-slide-in-up'), 350);
+        }
+        openRowActionModal(currentRowActionIndex - 1);
+      }, 300);
     }
   };
 }
 if (rowMoveDownBtn) {
   rowMoveDownBtn.onclick = function() {
     if (currentRowActionIndex !== null && currentRowActionIndex < carList.length - 1) {
-      // Di chuyển xe xuống
-      const temp = carList[currentRowActionIndex];
-      carList[currentRowActionIndex] = carList[currentRowActionIndex + 1];
-      carList[currentRowActionIndex + 1] = temp;
-      saveCarListToStorage(false);
-      renderCarList();
-      openRowActionModal(currentRowActionIndex + 1);
+      // Thêm hiệu ứng slide out cho dòng hiện tại
+      const tbody = document.getElementById('car-list').getElementsByTagName('tbody')[0];
+      const row = tbody.rows[currentRowActionIndex];
+      if (row) {
+        row.classList.add('car-row-slide-down');
+      }
+      setTimeout(() => {
+        const temp = carList[currentRowActionIndex];
+        carList[currentRowActionIndex] = carList[currentRowActionIndex + 1];
+        carList[currentRowActionIndex + 1] = temp;
+        saveCarListToStorage(false);
+        renderCarList();
+        // Hiệu ứng trượt vào
+        const tbodyNew = document.getElementById('car-list').getElementsByTagName('tbody')[0];
+        const rowNew = tbodyNew.rows[currentRowActionIndex + 1];
+        if (rowNew) {
+          rowNew.classList.add('car-row-slide-in-down');
+          setTimeout(() => rowNew.classList.remove('car-row-slide-in-down'), 350);
+        }
+        openRowActionModal(currentRowActionIndex + 1);
+      }, 300);
     }
   };
 }
