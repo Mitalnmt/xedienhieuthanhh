@@ -23,11 +23,14 @@ let undoInProgress = false; // Cờ để tránh undo liên tiếp
 function saveToHistory() {
   try {
     // Kiểm tra xem có thay đổi thực sự không
-    const currentState = JSON.stringify(carList.map(car => ({
-      ...car,
-      timeOut: car.timeOut.toISOString(),
-      timeIn: car.timeIn.toISOString()
-    })));
+    const currentState = JSON.stringify(carList
+      .filter(car => car && car.timeOut && car.timeIn)
+      .map(car => ({
+        ...car,
+        timeOut: car.timeOut.toISOString(),
+        timeIn: car.timeIn.toISOString()
+      }))
+    );
     
     // So sánh với trạng thái cuối cùng trong lịch sử
     if (undoHistory.length > 0) {
@@ -368,24 +371,25 @@ function updateCountdowns() {
   // Kiểm tra xe hết thời gian để cảnh báo
   let hasOverdue = false;
   let needRerender = false;
-  carList.forEach((car, idx) => {
-    const wasOverdue = car._wasOverdue || false;
-    const isOverdue = !car.done && !car.isNullTime && getRemainingTimeInMillis(car.timeIn, car) <= 0;
-    if (isOverdue && !wasOverdue) {
-      needRerender = true;
-    }
-    car._wasOverdue = isOverdue;
-    if (isOverdue) {
-      if (!overdueNotifiedIds.has(car.id)) {
-        notifyOverdue(car);
-        overdueNotifiedIds.add(car.id);
-      }
-      hasOverdue = true;
-    } else {
-      // Nếu xe không còn overdue, bỏ khỏi set để có thể cảnh báo lại nếu reset
-      overdueNotifiedIds.delete(car.id);
-    }
-  });
+      carList.forEach((car, idx) => {
+        if (!car || typeof car !== 'object') return;
+        const wasOverdue = car._wasOverdue || false;
+        const isOverdue = !car.done && !car.isNullTime && getRemainingTimeInMillis(car.timeIn, car) <= 0;
+        if (isOverdue && !wasOverdue) {
+          needRerender = true;
+        }
+        car._wasOverdue = isOverdue;
+        if (isOverdue) {
+          if (!overdueNotifiedIds.has(car.id)) {
+            notifyOverdue(car);
+            overdueNotifiedIds.add(car.id);
+          }
+          hasOverdue = true;
+        } else {
+          // Nếu xe không còn overdue, bỏ khỏi set để có thể cảnh báo lại nếu reset
+          overdueNotifiedIds.delete(car.id);
+        }
+      });
   if (needRerender) {
     renderCarList();
   }
@@ -536,6 +540,8 @@ function toggleDone(index) {
   } else if (!car.done) {
     car.done = true;
     car.pausedAt = getRemainingTimeInMillis(car.timeIn, car);
+    // --- NEW: Xóa khỏi danh sách toast hết giờ nếu có ---
+    removeCarFromOverdueToast(car.carCode);
   } else {
     car.done = false;
     if (car.pausedAt > 0) {
@@ -850,43 +856,54 @@ function saveCarListToStorage(skipHistory = false) {
 }
 
 function loadCarListFromStorage() {
-  window.db.ref('carList').on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      carList = data.map(car => {
-        const obj = {
-          ...car,
-          timeOut: new Date(car.timeOut),
-          timeIn: new Date(car.timeIn),
-        };
-        // Chuẩn hóa groupId/groupColor
-        if (car.groupId === null || car.groupId === '') {
-          delete obj.groupId;
+    window.db.ref('carList').on('value', (snapshot) => {
+      const data = snapshot.val();
+
+      // --- NEW: Nếu đang mở modal chọn xe (carModal), update ngay menu
+      const carModalEl = document.getElementById('carModal');
+      if (carModalEl && carModalEl.classList.contains('show')) {
+        if (window.carMenuEditor && typeof window.carMenuEditor.updateMainMenu === 'function') {
+          window.carMenuEditor.updateMainMenu();
         }
-        if (car.groupColor === null || car.groupColor === '') {
-          delete obj.groupColor;
-        }
-        // pausedAt phải là số hoặc undefined
-        if (typeof car.pausedAt === 'number') {
-          obj.pausedAt = car.pausedAt;
-        } else if (typeof car.pausedAt === 'string' && car.pausedAt !== '') {
-          obj.pausedAt = Number(car.pausedAt);
-        } else {
-          obj.pausedAt = undefined;
-        }
-        // nullStartTime phải là số hoặc undefined
-        if (typeof car.nullStartTime === 'number') {
-          obj.nullStartTime = car.nullStartTime;
-        } else if (typeof car.nullStartTime === 'string' && car.nullStartTime !== '') {
-          obj.nullStartTime = Number(car.nullStartTime);
-        } else {
-          obj.nullStartTime = undefined;
-        }
-        return obj;
-      });
-    } else {
-      carList = [];
-    }
+      }
+      // --- END NEW ---
+      if (data) {
+        carList = data
+          .filter(car => car && car.timeOut && car.timeIn)
+          .map(car => {
+            const obj = {
+              ...car,
+              timeOut: new Date(car.timeOut),
+              timeIn: new Date(car.timeIn),
+            };
+            // Chuẩn hóa groupId/groupColor
+            if (car.groupId === null || car.groupId === '') {
+              delete obj.groupId;
+            }
+            if (car.groupColor === null || car.groupColor === '') {
+              delete obj.groupColor;
+            }
+            // pausedAt phải là số hoặc undefined
+            if (typeof car.pausedAt === 'number') {
+              obj.pausedAt = car.pausedAt;
+            } else if (typeof car.pausedAt === 'string' && car.pausedAt !== '') {
+              obj.pausedAt = Number(car.pausedAt);
+            } else {
+              obj.pausedAt = undefined;
+            }
+            // nullStartTime phải là số hoặc undefined
+            if (typeof car.nullStartTime === 'number') {
+              obj.nullStartTime = car.nullStartTime;
+            } else if (typeof car.nullStartTime === 'string' && car.nullStartTime !== '') {
+              obj.nullStartTime = Number(car.nullStartTime);
+            } else {
+              obj.nullStartTime = undefined;
+            }
+            return obj;
+          });
+      } else {
+        carList = [];
+      }
     renderCarList();
     
     // Lưu trạng thái sau khi load dữ liệu từ Firebase (chỉ khi khởi tạo)
@@ -1100,6 +1117,8 @@ if (rowActionNoteBtn) {
 if (rowMoveUpBtn) {
   rowMoveUpBtn.onclick = function() {
     if (currentRowActionIndex !== null && currentRowActionIndex > 0) {
+      // Lưu id dòng sẽ move lên trước khi swap
+      const movedCarId = carList[currentRowActionIndex].id;
       // Thêm hiệu ứng slide out cho dòng hiện tại
       const tbody = document.getElementById('car-list').getElementsByTagName('tbody')[0];
       const row = tbody.rows[currentRowActionIndex];
@@ -1113,14 +1132,16 @@ if (rowMoveUpBtn) {
         carList[currentRowActionIndex - 1] = temp;
         saveCarListToStorage(false);
         renderCarList();
+        // Tìm lại index mới của xe vừa di chuyển
+        const newIndex = carList.findIndex(car => car.id === movedCarId);
         // Hiệu ứng trượt vào
         const tbodyNew = document.getElementById('car-list').getElementsByTagName('tbody')[0];
-        const rowNew = tbodyNew.rows[currentRowActionIndex - 1];
+        const rowNew = tbodyNew.rows[newIndex];
         if (rowNew) {
           rowNew.classList.add('car-row-slide-in-up');
           setTimeout(() => rowNew.classList.remove('car-row-slide-in-up'), 350);
         }
-        openRowActionModal(currentRowActionIndex - 1);
+        openRowActionModal(newIndex);
       }, 300);
     }
   };
@@ -1128,6 +1149,8 @@ if (rowMoveUpBtn) {
 if (rowMoveDownBtn) {
   rowMoveDownBtn.onclick = function() {
     if (currentRowActionIndex !== null && currentRowActionIndex < carList.length - 1) {
+      // Lưu id dòng sẽ move xuống trước khi swap
+      const movedCarId = carList[currentRowActionIndex].id;
       // Thêm hiệu ứng slide out cho dòng hiện tại
       const tbody = document.getElementById('car-list').getElementsByTagName('tbody')[0];
       const row = tbody.rows[currentRowActionIndex];
@@ -1140,14 +1163,16 @@ if (rowMoveDownBtn) {
         carList[currentRowActionIndex + 1] = temp;
         saveCarListToStorage(false);
         renderCarList();
+        // Tìm lại index mới của xe vừa di chuyển
+        const newIndex = carList.findIndex(car => car.id === movedCarId);
         // Hiệu ứng trượt vào
         const tbodyNew = document.getElementById('car-list').getElementsByTagName('tbody')[0];
-        const rowNew = tbodyNew.rows[currentRowActionIndex + 1];
+        const rowNew = tbodyNew.rows[newIndex];
         if (rowNew) {
           rowNew.classList.add('car-row-slide-in-down');
           setTimeout(() => rowNew.classList.remove('car-row-slide-in-down'), 350);
         }
-        openRowActionModal(currentRowActionIndex + 1);
+        openRowActionModal(newIndex);
       }, 300);
     }
   };
@@ -1350,20 +1375,52 @@ if (carModalEl) {
 
 // --- Cảnh báo xe hết thời gian ---
 let overdueNotifiedIds = new Set();
+let overdueCarCodes = new Set(); // Gom mã xe hết giờ!
+
+function updateOverdueToast() {
+  let toastEl = document.getElementById('overdueToastMass');
+  if (!toastEl) {
+    // Tạo toast nếu chưa có
+    toastEl = document.createElement('div');
+    toastEl.id = 'overdueToastMass';
+    toastEl.className = 'toast align-items-center text-white bg-danger border-0 show';
+    toastEl.role = 'alert';
+    toastEl.ariaLive = 'assertive';
+    toastEl.ariaAtomic = 'true';
+    toastEl.style.position = 'fixed';
+    toastEl.style.top = '20px';
+    toastEl.style.right = '20px';
+    toastEl.style.zIndex = '99999';
+    toastEl.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body" id="overdueToastMassBody"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" id="overdueToastMassClose" aria-label="Close"></button>
+    </div>
+    `;
+    document.body.appendChild(toastEl);
+    toastEl.querySelector('#overdueToastMassClose').onclick = function() {
+      toastEl.classList.remove('show');
+      overdueCarCodes.clear();
+    };
+  }
+  const body = document.getElementById('overdueToastMassBody');
+  if (body) {
+    if (overdueCarCodes.size === 0) {
+      toastEl.classList.remove('show');
+      return;
+    }
+    toastEl.classList.add('show');
+    body.innerHTML = '<b>Các xe đã hết giờ!</b><br>' + Array.from(overdueCarCodes).map(code => `<span class="badge bg-light text-danger m-1">${code}</span>`).join(' ');
+  }
+}
+// Gọi hàm này khi có thay đổi overdueCarCodes (thêm hoặc xóa xe khỏi set)
+
 function notifyOverdue(car) {
-  // Hiện toast
-  const toastBody = document.getElementById('overdueToastBody');
-  if (toastBody) {
-    toastBody.textContent = `Xe ${car.carCode} đã hết thời gian!`;
-  }
-  const toastEl = document.getElementById('overdueToast');
-  if (toastEl) {
-    const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
-    toast.show();
-  }
-  // Phát âm thanh beep
+  overdueCarCodes.add(car.carCode);
+  updateOverdueToast();
+  // Phát âm thanh beep, rung và đẩy notification như cũ
   try {
-    const ctx = new (window.AudioContext || window.webkit.AudioContext)();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = ctx.createOscillator();
     oscillator.type = 'sine';
     oscillator.frequency.setValueAtTime(880, ctx.currentTime);
@@ -1372,16 +1429,22 @@ function notifyOverdue(car) {
     oscillator.stop(ctx.currentTime + 0.3);
     oscillator.onended = () => ctx.close();
   } catch (e) {}
-  // Rung thiết bị nếu hỗ trợ
   if (navigator.vibrate) {
     navigator.vibrate([200, 100, 200]);
   }
-  // Hiện notification nếu đã cấp quyền
   if ('Notification' in window && Notification.permission === 'granted') {
     new Notification('Xe hết thời gian', {
-      body: `Xe ${car.carCode} đã hết thời gian!`,
-      icon: '', // Có thể thêm icon nếu muốn
+      body: `Các xe: ${Array.from(overdueCarCodes).join(', ')} đã hết giờ!`,
+      icon: '',
     });
+  }
+}
+
+// Khi Done xe thì xóa khỏi overdueCarCodes nếu có, và cập nhật lại toast
+function removeCarFromOverdueToast(carCode) {
+  if (overdueCarCodes.has(carCode)) {
+    overdueCarCodes.delete(carCode);
+    updateOverdueToast();
   }
 }
 

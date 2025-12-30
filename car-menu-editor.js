@@ -385,11 +385,17 @@ class CarMenuEditor {
         const color = bg ? this.getContrastingTextColor(bg) : '';
         groupDiv.innerHTML = group.cars.map(car => {
           const isOut = outSet.has(car);
-          const style = (!isOut && bg) ? `style=\"background-color:${bg};color:${color};border-color:${bg}\"` : '';
-          const outClass = isOut ? ' btn-car-out' : '';
+          let style = (!isOut && bg) ? `style=\"background-color:${bg};color:${color};border-color:${bg}\"` : '';
+          let disabled = '';
+          let outClass = '';
+          if (isOut) {
+            disabled = 'disabled';
+            outClass = ' btn-car-out';
+            style = 'style="background-color:#ccc; color:#888; border-color:#bbb;"';
+          }
           const baseClass = (!bg ? 'btn-secondary ' : '');
-          const classes = isOut ? 'btn m-1' : `btn ${baseClass}m-1`;
-          return `<button class=\"${classes}${outClass}\" ${style} onclick=\"selectCarCode('${car}')\">${car}</button>`;
+          const classes = `btn ${baseClass}m-1${outClass}`;
+          return `<button class=\"${classes}\" ${style} ${disabled} onclick=\"${isOut ? '' : `selectCarCode('${car}')`}\">${car}</button>`;
         }).join('');
         modalBody.appendChild(groupDiv);
       }
