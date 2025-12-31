@@ -1378,16 +1378,29 @@ function exportCarList() {
 const carModalEl = document.getElementById('carModal');
 window.carModalOpen = false;
 if (carModalEl) {
+  let carMenuSyncInterval = null;
   carModalEl.addEventListener('show.bs.modal', function() {
     window.carModalOpen = true;
     // Cập nhật menu xe từ car menu editor
     if (window.carMenuEditor) {
       window.carMenuEditor.updateMainMenu();
     }
+    // Tự động đồng bộ menu xe mỗi giây khi modal mở
+    if (!carMenuSyncInterval) {
+      carMenuSyncInterval = setInterval(() => {
+        if (window.carModalOpen && window.carMenuEditor) {
+          window.carMenuEditor.updateMainMenu();
+        }
+      }, 1000);
+    }
   });
 
   carModalEl.addEventListener('hidden.bs.modal', function () {
     window.carModalOpen = false;
+    if (carMenuSyncInterval) {
+      clearInterval(carMenuSyncInterval);
+      carMenuSyncInterval = null;
+    }
   });
 }
 
