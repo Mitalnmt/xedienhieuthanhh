@@ -197,6 +197,9 @@ function addCar(carCode, groupMeta) {
 
 // Render danh sách xe
 function renderCarList() {
+  // --- NEW: Sau mỗi lần render bảng, đồng bộ lại toast các xe hết giờ ---
+  setTimeout(syncOverdueToastWithCurrentState, 0);
+
   const tbody = document.getElementById('car-list').getElementsByTagName('tbody')[0];
   tbody.innerHTML = '';  // Xóa các dòng cũ
 
@@ -542,6 +545,7 @@ function toggleDone(index) {
     car.pausedAt = getRemainingTimeInMillis(car.timeIn, car);
     // --- NEW: Xóa khỏi danh sách toast hết giờ nếu có ---
     removeCarFromOverdueToast(car.carCode);
+    setTimeout(syncOverdueToastWithCurrentState,0);
   } else {
     car.done = false;
     if (car.pausedAt > 0) {
@@ -549,6 +553,12 @@ function toggleDone(index) {
       car.timeIn = new Date(now.getTime() + car.pausedAt);
     }
     car.pausedAt = undefined; // Đảm bảo xóa pausedAt khi resume
+    // --- NEW: Nếu xe này chưa done và vẫn hết giờ, thêm lại vào toast ---
+    const isStillOverdue = !car.isNullTime && (getRemainingTimeInMillis(car.timeIn, car) <= 0);
+    if (isStillOverdue) {
+      overdueCarCodes.add(car.carCode);
+      setTimeout(syncOverdueToastWithCurrentState,0);
+    }
   }
   // Cập nhật UI cục bộ cho dòng này
   const tbody = document.getElementById('car-list').getElementsByTagName('tbody')[0];
@@ -859,9 +869,8 @@ function loadCarListFromStorage() {
     window.db.ref('carList').on('value', (snapshot) => {
       const data = snapshot.val();
 
-      // --- NEW: Nếu đang mở modal chọn xe (carModal), update ngay menu
-      const carModalEl = document.getElementById('carModal');
-      if (carModalEl && carModalEl.classList.contains('show')) {
+      // --- NEW: Nếu đang mở modal chọn xe, update ngay menu (sử dụng flag toàn cục)
+      if (window.carModalOpen) {
         if (window.carMenuEditor && typeof window.carMenuEditor.updateMainMenu === 'function') {
           window.carMenuEditor.updateMainMenu();
         }
@@ -906,6 +915,9 @@ function loadCarListFromStorage() {
       }
     renderCarList();
     
+    // --- NEW: Đồng bộ toast các xe hết giờ mỗi khi reload dữ liệu ---
+    syncOverdueToastWithCurrentState();
+
     // Lưu trạng thái sau khi load dữ liệu từ Firebase (chỉ khi khởi tạo)
     if (!window.initialLoadComplete) {
       window.initialLoadComplete = true;
@@ -1364,18 +1376,35 @@ function exportCarList() {
 
 // Khi mở modal chọn xe, cập nhật menu xe từ car menu editor
 const carModalEl = document.getElementById('carModal');
+window.carModalOpen = false;
 if (carModalEl) {
   carModalEl.addEventListener('show.bs.modal', function() {
+    window.carModalOpen = true;
     // Cập nhật menu xe từ car menu editor
     if (window.carMenuEditor) {
       window.carMenuEditor.updateMainMenu();
     }
+  });
+
+  carModalEl.addEventListener('hidden.bs.modal', function () {
+    window.carModalOpen = false;
   });
 }
 
 // --- Cảnh báo xe hết thời gian ---
 let overdueNotifiedIds = new Set();
 let overdueCarCodes = new Set(); // Gom mã xe hết giờ!
+
+function syncOverdueToastWithCurrentState() {
+  // Xây lại set overdueCarCodes cho đúng các xe hết giờ mà chưa done
+  overdueCarCodes.clear();
+  for (const car of carList) {
+    if (!car.isNullTime && !car.done && getRemainingTimeInMillis(car.timeIn, car) <= 0) {
+      overdueCarCodes.add(car.carCode);
+    }
+  }
+  updateOverdueToast();
+}
 
 function updateOverdueToast() {
   let toastEl = document.getElementById('overdueToastMass');
