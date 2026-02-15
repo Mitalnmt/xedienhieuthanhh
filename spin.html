@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vòng quay may mắn - Lucky Wheel</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #eee;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 1.75rem;
+      color: #e94560;
+    }
+    .container {
+      display: flex;
+      gap: 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    /* --- Bên trái: Vòng quay --- */
+    .wheel-section {
+      flex: 0 0 auto;
+      position: relative;
+      width: 380px;
+      height: 380px;
+    }
+    #wheelCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 0 0 8px #e94560, 0 0 30px rgba(233, 69, 96, 0.4);
+      background: #0f0f1a;
+    }
+    .wheel-pointer {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 36px solid #e94560;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+      z-index: 10;
+      pointer-events: none;
+    }
+    /* --- Bên phải: Điều khiển --- */
+    .controls-section {
+      flex: 1;
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .controls-section label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #a0a0a0;
+    }
+    #optionsInput {
+      width: 100%;
+      min-height: 180px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid #333;
+      background: #0f0f1a;
+      color: #eee;
+      font-size: 14px;
+      resize: vertical;
+    }
+    #optionsInput:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #e94560, #c73e54);
+      color: white;
+    }
+    .btn-secondary {
+      background: #2d2d44;
+      color: #eee;
+      border: 1px solid #444;
+    }
+    .btn-spin {
+      background: linear-gradient(135deg, #0f3460, #16213e);
+      color: #e94560;
+      border: 2px solid #e94560;
+      font-size: 18px;
+      padding: 14px 28px;
+    }
+    #spinBtn:disabled {
+      opacity: 0.7;
+    }
+    .result-box {
+      margin-top: 8px;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(233, 69, 96, 0.15);
+      border: 1px solid #e94560;
+      min-height: 48px;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      color: #ff6b6b;
+    }
+    .result-box.empty {
+      color: #666;
+      font-weight: normal;
+      font-size: 14px;
+    }
+    /* --- Modal Cài đặt --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal {
+      background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 12px;
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: hidden;
+      border: 1px solid #333;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 {
+      font-size: 1.25rem;
+      color: #e94560;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .modal-close:hover {
+      color: #fff;
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      max-height: calc(90vh - 140px);
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .setting-row label {
+      flex: 1;
+      min-width: 120px;
+      margin: 0;
+    }
+    .setting-row input[type="number"] {
+      width: 80px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #0f0f1a;
+      color: #eee;
+      font-size: 14px;
+    }
+    .forced-select-wrap {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #333;
+    }
+    .forced-select-wrap label {
+      display: block;
+      margin-bottom: 8px;
+    }
+    #forcedResultSelect {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: #0f0f1a;
+      color: #eee;
+      font-size: 14px;
+    }
+    .modal-footer {
+      padding: 16px 20px;
+      border-top: 1px solid #333;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .weight-sum {
+      font-size: 12px;
+      color: #888;
+      margin-top: 8px;
+    }
+    .weight-sum.error {
+      color: #e94560;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎡 Vòng quay may mắn</h1>
+  <div class="container">
+    <section class="wheel-section">
+      <div class="wheel-pointer"></div>
+      <canvas id="wheelCanvas" width="380" height="380"></canvas>
+    </section>
+    <section class="controls-section">
+      <label for="optionsInput">Danh sách lựa chọn (mỗi dòng 1 option)</label>
+      <textarea id="optionsInput" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+      <button type="button" class="btn btn-primary" id="updateBtn">Cập nhật vòng quay</button>
+      <button type="button" class="btn btn-spin" id="spinBtn">Quay</button>
+      <div id="resultBox" class="result-box empty">Kết quả sẽ hiển thị ở đây</div>
+    </section>
+  </div>
+
+  <!-- Modal Cài đặt -->
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Cài đặt xác suất</h2>
+        <button type="button" class="modal-close" id="modalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="settingsOptionsList"></div>
+        <div class="weight-sum" id="weightSum">Tổng: 0%</div>
+        <div class="forced-select-wrap">
+          <label>Kết quả bắt buộc (lần quay tiếp theo):</label>
+          <select id="forcedResultSelect">
+            <option value="">-- Không chọn --</option>
+          </select>
+          <p class="weight-sum">Chỉ có hiệu lực 1 lần, sau khi quay sẽ reset.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="modalCancel">Hủy</button>
+        <button type="button" class="btn btn-primary" id="modalSave">Lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script>
+    // ========== Firebase Config ==========
+    const firebaseConfig = {
+      apiKey: "AIzaSyAj8MNZXEN1tQaOqZ4jGxGhX04IWAW437s",
+      authDomain: "xehtml.firebaseapp.com",
+      databaseURL: "https://xehtml-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "xehtml",
+      storageBucket: "xehtml.firebasestorage.app",
+      messagingSenderId: "295057234622",
+      appId: "1:295057234622:web:814425305c34e22cf81cef",
+      measurementId: "G-CEQ6GP1D3Z"
+    };
+
+    // Khởi tạo Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const DB_PATH = 'luckyWheel';
+
+    // ========== State ==========
+    let options = []; // [{ name: string, weight: number }], weight là %
+    let forcedResult = null; // index (number) hoặc null
+    let currentRotation = 0; // góc hiện tại của bánh xe (rad)
+    let isSpinning = false;
+    let canvas, ctx;
+
+    // ========== DOM ==========
+    const wheelCanvas = document.getElementById('wheelCanvas');
+    const optionsInput = document.getElementById('optionsInput');
+    const updateBtn = document.getElementById('updateBtn');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultBox = document.getElementById('resultBox');
+    const settingsModal = document.getElementById('settingsModal');
+    const modalClose = document.getElementById('modalClose');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalSave = document.getElementById('modalSave');
+    const settingsOptionsList = document.getElementById('settingsOptionsList');
+    const forcedResultSelect = document.getElementById('forcedResultSelect');
+    const weightSumEl = document.getElementById('weightSum');
+
+    // Áp dụng dữ liệu từ snapshot Firebase (dùng cho load + sync realtime)
+    function applyFirebaseData(data) {
+      if (data && data.options && Array.isArray(data.options) && data.options.length > 0) {
+        options = data.options.map(o => ({
+          name: o.name || '',
+          weight: typeof o.weight === 'number' ? o.weight : 100 / data.options.length
+        }));
+        forcedResult = data.forcedResult != null ? data.forcedResult : null;
+        syncUIFromOptions();
+        renderWheel();
+        updateForcedSelect();
+      } else {
+        options = [];
+        forcedResult = null;
+        optionsInput.value = '';
+        renderWheel();
+      }
+    }
+
+    // ========== Load + đồng bộ realtime từ Firebase ==========
+    // Thiết bị khác chỉnh Cài đặt (hoặc options) → thiết bị này tự cập nhật, không cần refresh
+    function loadFromFirebase() {
+      const ref = database.ref(DB_PATH);
+      ref.on('value', function (snapshot) {
+        try {
+          const data = snapshot.val();
+          applyFirebaseData(data);
+        } catch (err) {
+          console.error('Firebase sync error:', err);
+        }
+      }, function (err) {
+        console.error('Load Firebase error:', err);
+        resultBox.textContent = 'Không thể tải dữ liệu từ Firebase.';
+        resultBox.classList.remove('empty');
+      });
+    }
+
+    // Đồng bộ textarea và state từ options
+    function syncUIFromOptions() {
+      optionsInput.value = options.map(o => o.name).join('\n');
+    }
+
+    // ========== Lưu lên Firebase ==========
+    function saveToFirebase() {
+      try {
+        const ref = database.ref(DB_PATH);
+        ref.set({
+          options: options.map(o => ({ name: o.name, weight: o.weight })),
+          forcedResult: forcedResult
+        });
+      } catch (err) {
+        console.error('Save Firebase error:', err);
+        resultBox.textContent = 'Lỗi lưu dữ liệu.';
+        resultBox.classList.remove('empty');
+      }
+    }
+
+    // ========== Vẽ vòng quay ==========
+    function renderWheel() {
+      if (!wheelCanvas) return;
+      canvas = wheelCanvas;
+      ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const size = 380;
+      canvas.width = size * dpr;
+      canvas.height = size * dpr;
+      ctx.scale(dpr, dpr);
+
+      const centerX = size / 2;
+      const centerY = size / 2;
+      const radius = Math.min(centerX, centerY) - 10;
+
+      ctx.clearRect(0, 0, size, size);
+
+      if (!options.length) {
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#666';
+        ctx.font = '16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Chưa có option', centerX, centerY);
+        return;
+      }
+
+      // Giao diện vòng quay luôn chia đều (không phụ thuộc % xác suất)
+      const sliceAngle = (Math.PI * 2) / options.length;
+      const colors = ['#e94560', '#0f3460', '#533483', '#2d4059', '#ea5455', '#1a1a2e', '#16213e', '#0f3460'];
+      let startAngle = -Math.PI / 2; // Bắt đầu từ trên (12h)
+
+      for (let i = 0; i < options.length; i++) {
+        const endAngle = startAngle + sliceAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.strokeStyle = '#1a1a2e';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Chữ nằm giữa cung
+        const midAngle = startAngle + sliceAngle / 2;
+        const textRadius = radius * 0.65;
+        const tx = centerX + Math.cos(midAngle) * textRadius;
+        const ty = centerY + Math.sin(midAngle) * textRadius;
+        ctx.save();
+        ctx.translate(tx, ty);
+        const deg = (midAngle * 180 / Math.PI + 90) % 360;
+        if (deg > 90 && deg < 270) ctx.rotate(midAngle + Math.PI);
+        else ctx.rotate(midAngle);
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const label = options[i].name.length > 12 ? options[i].name.slice(0, 10) + '…' : options[i].name;
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+
+        startAngle = endAngle;
+      }
+
+      // Vòng tròn trong
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fill();
+      ctx.strokeStyle = '#e94560';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+
+    // Góc mỗi segment: luôn chia đều (khớp với giao diện vòng quay)
+    function getSegmentAngles() {
+      if (!options.length) return { startAngles: [], sliceAngle: 0 };
+      const sliceAngle = (Math.PI * 2) / options.length;
+      const startAngles = [];
+      for (let i = 0; i < options.length; i++) {
+        startAngles.push(-Math.PI / 2 + i * sliceAngle);
+      }
+      return { startAngles, sliceAngle };
+    }
+
+    // Tính segment nằm dưới kim (góc 12h = -PI/2) khi wheel đang ở góc rotation
+    function getSegmentUnderPointer(rotation) {
+      if (!options.length) return 0;
+      const n = options.length;
+      const twoPi = Math.PI * 2;
+      // Điểm tại kim (canvas -PI/2) trên wheel có góc local = -PI/2 - rotation
+      let localAngle = (-Math.PI / 2 - rotation) % twoPi;
+      if (localAngle < 0) localAngle += twoPi;
+      // Segment i có góc local [-PI/2 + i*2PI/n, -PI/2 + (i+1)*2PI/n) => chuẩn hóa [0,2PI): [+3PI/2 + i*2PI/n, ...)
+      const i = Math.floor((localAngle + Math.PI / 2) * n / twoPi) % n;
+      return i < 0 ? i + n : i;
+    }
+
+    // ========== Chọn index theo trọng số (dùng khi không có forced) ==========
+    // Dùng xác suất tích lũy với r trong [0,1) để tránh lỗi khi 1 option 100% còn lại 0%
+    function getRandomByWeight() {
+      if (!options.length) return 0;
+      const total = options.reduce((s, o) => s + o.weight, 0) || 1;
+      if (total <= 0) return 0;
+      const r = Math.random();
+      let acc = 0;
+      for (let i = 0; i < options.length; i++) {
+        acc += options[i].weight / total;
+        if (r < acc) return i;
+      }
+      return options.length - 1;
+    }
+
+    // Vẽ vòng quay với góc xoay (dùng khi đang quay)
+    function redrawWheelWithRotation(rotation) {
+      const size = 380;
+      const centerX = size / 2;
+      const centerY = size / 2;
+      const radius = Math.min(centerX, centerY) - 10;
+      const sliceAngle = (Math.PI * 2) / options.length;
+      const colors = ['#e94560', '#0f3460', '#533483', '#2d4059', '#ea5455', '#1a1a2e', '#16213e', '#0f3460'];
+      let startAngle = -Math.PI / 2;
+
+      ctx.clearRect(0, 0, size, size);
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(rotation);
+      ctx.translate(-centerX, -centerY);
+
+      for (let i = 0; i < options.length; i++) {
+        const endAngle = startAngle + sliceAngle;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.strokeStyle = '#1a1a2e';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        const midAngle = startAngle + sliceAngle / 2;
+        const textRadius = radius * 0.65;
+        const tx = centerX + Math.cos(midAngle) * textRadius;
+        const ty = centerY + Math.sin(midAngle) * textRadius;
+        ctx.save();
+        ctx.translate(tx, ty);
+        const deg = (midAngle * 180 / Math.PI + 90) % 360;
+        if (deg > 90 && deg < 270) ctx.rotate(midAngle + Math.PI);
+        else ctx.rotate(midAngle);
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const label = options[i].name.length > 12 ? options[i].name.slice(0, 10) + '…' : options[i].name;
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+        startAngle = endAngle;
+      }
+
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 28, 0, Math.PI * 2);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fill();
+      ctx.strokeStyle = '#e94560';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+
+    // Chỉ lưu forcedResult lên Firebase (để thiết bị khác có thể cài cho thiết bị quay)
+    function saveForcedResultToFirebase(value) {
+      try {
+        database.ref(DB_PATH).update({ forcedResult: value });
+      } catch (err) {
+        console.error('Save forcedResult error:', err);
+      }
+    }
+
+    // Đọc forcedResult từ DB trước khi quay (thiết bị khác có thể đã cài)
+    function readForcedResultFromFirebase() {
+      return database.ref(DB_PATH).once('value').then(function (snapshot) {
+        const data = snapshot.val();
+        if (data && data.forcedResult != null) {
+          const idx = data.forcedResult;
+          return (idx >= 0 && idx < options.length) ? idx : null;
+        }
+        return null;
+      });
+    }
+
+    // ========== Quay vòng ==========
+    function spinWheel() {
+      if (isSpinning || !options.length) return;
+      isSpinning = true;
+      spinBtn.disabled = true;
+      resultBox.textContent = 'Đang quay...';
+      resultBox.classList.remove('empty');
+
+      readForcedResultFromFirebase()
+        .catch(function (err) {
+          console.error('Đọc forcedResult từ DB lỗi:', err);
+          return null;
+        })
+        .then(function (forcedFromDb) {
+        let winIndex;
+        var isForced = forcedFromDb != null;
+        if (isForced) {
+          winIndex = forcedFromDb;
+          saveForcedResultToFirebase(null);
+          forcedResult = null;
+          updateForcedSelect();
+        } else {
+          winIndex = getRandomByWeight();
+        }
+
+        const { startAngles, sliceAngle } = getSegmentAngles();
+        const midAngle = startAngles[winIndex] + sliceAngle / 2;
+        const twoPi = Math.PI * 2;
+        const startRotation = currentRotation;
+        const exactTarget = -Math.PI / 2 - midAngle;
+        // Kết quả bắt buộc: quay thêm nhiều vòng (8–12), lâu hơn, dừng dần rõ ràng
+        var fullTurns = isForced ? (8 + Math.random() * 5) : (5 + Math.random() * 2);
+        var duration = isForced ? (4500 + Math.random() * 1500) : (3000 + Math.random() * 2000);
+        // Luôn quay thêm ít nhất fullTurns vòng VÀ endRotation - startRotation >= 5π (animation rõ ràng)
+        let k = Math.ceil((startRotation - exactTarget + 5 * Math.PI) / twoPi);
+        if (k < fullTurns) k = fullTurns;
+        const endRotation = exactTarget + k * twoPi;
+
+        const startTime = performance.now();
+        // Easing: dừng dần mạnh khi gần đích (quintic), tránh giật
+        function easeOutQuint(t) {
+          t = Math.max(0, Math.min(1, t));
+          return 1 - Math.pow(1 - t, 5);
+        }
+
+        function animate(now) {
+          const elapsed = now - startTime;
+          const t = Math.min(elapsed / duration, 1);
+          const easeOut = easeOutQuint(t);
+          const stepRotation = startRotation + (endRotation - startRotation) * easeOut;
+          redrawWheelWithRotation(stepRotation);
+
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          currentRotation = endRotation;
+          isSpinning = false;
+          spinBtn.disabled = false;
+          var actualIndex = getSegmentUnderPointer(endRotation);
+          resultBox.textContent = 'Kết quả: ' + options[actualIndex].name;
+          resultBox.classList.remove('empty');
+        }
+        }
+
+        redrawWheelWithRotation(startRotation);
+        requestAnimationFrame(animate);
+      });
+    }
+
+    // Cập nhật nút Cập nhật vòng quay
+    updateBtn.addEventListener('click', () => {
+      const lines = optionsInput.value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (!lines.length) {
+        resultBox.textContent = 'Vui lòng nhập ít nhất 1 option.';
+        resultBox.classList.remove('empty');
+        return;
+      }
+      const total = lines.length;
+      options = lines.map(name => ({ name, weight: 100 / total }));
+      renderWheel();
+      saveToFirebase();
+      updateForcedSelect();
+      resultBox.textContent = 'Đã cập nhật ' + options.length + ' option.';
+      resultBox.classList.remove('empty');
+    });
+
+    spinBtn.addEventListener('click', spinWheel);
+
+    // Modal cài đặt
+    function updateForcedSelect() {
+      forcedResultSelect.innerHTML = '<option value="">-- Không chọn --</option>';
+      options.forEach((o, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = o.name;
+        if (forcedResult === i) opt.selected = true;
+        forcedResultSelect.appendChild(opt);
+      });
+    }
+
+    // Khi đổi "Kết quả bắt buộc" → lưu lên DB ngay (thiết bị khác đọc được)
+    forcedResultSelect.addEventListener('change', function () {
+      const val = forcedResultSelect.value;
+      forcedResult = val === '' ? null : parseInt(val, 10);
+      saveForcedResultToFirebase(forcedResult);
+    });
+
+    function openSettingsModal() {
+      settingsOptionsList.innerHTML = '';
+      options.forEach((o, i) => {
+        const row = document.createElement('div');
+        row.className = 'setting-row';
+        const label = document.createElement('label');
+        label.htmlFor = 'weight-' + i;
+        label.textContent = o.name;
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.id = 'weight-' + i;
+        input.min = 0;
+        input.max = 100;
+        input.step = 0.5;
+        input.value = o.weight;
+        row.appendChild(label);
+        row.appendChild(input);
+        row.appendChild(document.createTextNode(' %'));
+        settingsOptionsList.appendChild(row);
+      });
+      updateForcedSelect();
+      updateWeightSum();
+      settingsModal.classList.add('show');
+    }
+
+    function updateWeightSum() {
+      let sum = 0;
+      options.forEach((_, i) => {
+        const input = document.getElementById('weight-' + i);
+        if (input) sum += parseFloat(input.value) || 0;
+      });
+      weightSumEl.textContent = 'Tổng: ' + sum.toFixed(1) + '%';
+      weightSumEl.classList.toggle('error', Math.abs(sum - 100) > 0.5);
+    }
+
+    document.getElementById('settingsModal').addEventListener('input', updateWeightSum);
+
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) settingsBtn.addEventListener('click', openSettingsModal);
+    modalClose.addEventListener('click', () => settingsModal.classList.remove('show'));
+    modalCancel.addEventListener('click', () => settingsModal.classList.remove('show'));
+    modalSave.addEventListener('click', () => {
+      const newOptions = options.map((o, i) => {
+        const input = document.getElementById('weight-' + i);
+        const w = input ? parseFloat(input.value) : o.weight;
+        return { name: o.name, weight: isNaN(w) || w < 0 ? 0 : w };
+      });
+      const sum = newOptions.reduce((s, o) => s + o.weight, 0);
+      if (Math.abs(sum - 100) > 0.5) {
+        weightSumEl.classList.add('error');
+        return;
+      }
+      options = newOptions;
+      forcedResult = forcedResultSelect.value === '' ? null : parseInt(forcedResultSelect.value, 10);
+      saveToFirebase();
+      renderWheel();
+      settingsModal.classList.remove('show');
+      resultBox.textContent = 'Đã lưu cài đặt.';
+      resultBox.classList.remove('empty');
+    });
+
+    // Khởi tạo
+    loadFromFirebase();
+    renderWheel();
+    // Mở modal cài đặt xác suất khi vào trang bằng link từ web desktop (?open=settings)
+    if (window.location.search.includes('open=settings') || window.location.hash === '#settings') {
+      setTimeout(openSettingsModal, 300);
+    }
+  </script>
+</body>
+</html>
