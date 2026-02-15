@@ -510,7 +510,7 @@
             <label class="form-label">Chức năng nhanh:</label>
             <div class="d-flex flex-wrap gap-2 mb-2">
               <a href="spin.html" class="btn btn-outline-primary btn-sm" target="_blank">Vòng quay (Spin)</a>
-              <a href="spin.html?open=settings" class="btn btn-outline-secondary btn-sm" target="_blank">Cài đặt xác suất</a>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#spinSettingsModal">Cài đặt xác suất</button>
             </div>
           </div>
 
@@ -531,6 +531,34 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal Cài đặt xác suất (iframe trang spin) -->
+  <div class="modal fade" id="spinSettingsModal" tabindex="-1" aria-labelledby="spinSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width: 90%; max-height: 90vh;">
+      <div class="modal-content" style="max-height: 90vh;">
+        <div class="modal-header py-2">
+          <h5 class="modal-title" id="spinSettingsModalLabel">Cài đặt xác suất vòng quay</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0" style="height: 70vh; overflow: hidden;">
+          <iframe id="spinSettingsFrame" src="about:blank" style="width:100%; height:100%; border:0;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function() {
+      var modal = document.getElementById('spinSettingsModal');
+      if (modal) {
+        modal.addEventListener('show.bs.modal', function() {
+          document.getElementById('spinSettingsFrame').src = 'spin.html?open=settings';
+        });
+        modal.addEventListener('hidden.bs.modal', function() {
+          document.getElementById('spinSettingsFrame').src = 'about:blank';
+        });
+      }
+    })();
+  </script>
 
   <!-- Modal thao tác dòng -->
   <div class="modal fade" id="rowActionModal" tabindex="-1" aria-labelledby="rowActionModalLabel" aria-hidden="true">
