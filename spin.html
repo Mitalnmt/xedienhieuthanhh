@@ -288,9 +288,6 @@
       <canvas id="wheelCanvas" width="380" height="380"></canvas>
     </section>
     <section class="controls-section">
-      <label for="optionsInput">Danh sách lựa chọn (mỗi dòng 1 option)</label>
-      <textarea id="optionsInput" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
-      <button type="button" class="btn btn-primary" id="updateBtn">Cập nhật vòng quay</button>
       <button type="button" class="btn btn-spin" id="spinBtn">Quay</button>
       <div id="resultBox" class="result-box empty">Kết quả sẽ hiển thị ở đây</div>
     </section>
@@ -304,6 +301,14 @@
         <button type="button" class="modal-close" id="modalClose">&times;</button>
       </div>
       <div class="modal-body">
+        <div style="margin-bottom: 14px;">
+          <label for="optionsInput">Danh sách lựa chọn (mỗi dòng 1 option)</label>
+          <textarea id="optionsInput" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+          <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button type="button" class="btn btn-primary" id="updateBtn">Cập nhật vòng quay</button>
+          </div>
+        </div>
+        <div style="height:1px; background:#333; margin: 12px 0;"></div>
         <div id="settingsOptionsList"></div>
         <div class="weight-sum" id="weightSum">Tổng: 0%</div>
         <div class="forced-select-wrap">
@@ -701,6 +706,16 @@
     });
 
     spinBtn.addEventListener('click', spinWheel);
+    // Bấm trực tiếp vào vòng quay để quay
+    if (wheelCanvas) {
+      wheelCanvas.style.cursor = 'pointer';
+      const onWheelTap = (e) => {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+        spinWheel();
+      };
+      wheelCanvas.addEventListener('click', onWheelTap);
+      wheelCanvas.addEventListener('touchend', onWheelTap, { passive: false });
+    }
 
     // Modal cài đặt
     function updateForcedSelect() {
@@ -756,7 +771,11 @@
       weightSumEl.classList.toggle('error', Math.abs(sum - 100) > 0.5);
     }
 
-    document.getElementById('settingsModal').addEventListener('input', updateWeightSum);
+    // Chỉ cập nhật "Tổng %" khi chỉnh các ô weight-*
+    document.getElementById('settingsModal').addEventListener('input', (e) => {
+      const id = e && e.target && e.target.id;
+      if (id && id.startsWith('weight-')) updateWeightSum();
+    });
 
     const settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) settingsBtn.addEventListener('click', openSettingsModal);
