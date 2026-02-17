@@ -6,7 +6,7 @@ class MultipleCarSelection {
     // Bảng màu tương phản để tô nhóm Mã xe (ưu tiên dễ đọc trên nền đỏ/xanh/vàng)
     this.groupColorPalette = [
       '#1e88e5', // blue 600
-      '#8e24aa', // purple 600
+      //'#8e24aa', // purple 600
       //'#f4511e', // deep orange 600 loại dòng này vì khi xe hết giờ bị trùng màu khó nhìn 
       '#3949ab', // indigo 600
       '#840035', // pink 700 dòng này đang giảm màu để đỡ chói khi hàng màu đỏ xe hết giờ
