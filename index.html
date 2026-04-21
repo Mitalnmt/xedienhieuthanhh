@@ -306,7 +306,12 @@
       -webkit-user-select: none;
     }
 
+    /* Cho phép cuộn trong move mode; chỉ khóa khi đang kéo */
     body.row-move-mode-active .swipe-row {
+      touch-action: pan-y;
+    }
+
+    body.row-move-dragging .swipe-row {
       touch-action: none;
     }
 
@@ -2634,9 +2639,10 @@
 
       function enterRowMoveMode() {
         document.body.classList.add('row-move-mode-active');
-        rowMultiSelectState.active = false;
+        // Nếu đang chọn nhiều dòng thì giữ selection để kéo cả khối.
+        var hasSelection = rowMultiSelectState.selectedIds && rowMultiSelectState.selectedIds.size > 0;
+        rowMultiSelectState.active = hasSelection ? true : false;
         rowMultiSelectState.anchorIndex = null;
-        rowMultiSelectState.selectedIds.clear();
         document.body.classList.remove('row-multi-select-active');
         var tbl0 = document.getElementById('car-list');
         if (tbl0) tbl0.classList.remove('select-mode');
@@ -3999,38 +4005,6 @@
           return typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 768px)').matches;
         }
 
-        function captureMobileRowRects() {
-          var map = new Map();
-          document.querySelectorAll('#carListMobile .swipe-row[data-car-id]').forEach(function (rowEl) {
-            var key = rowEl.getAttribute('data-car-id');
-            if (!key) return;
-            map.set(key, rowEl.getBoundingClientRect());
-          });
-          return map;
-        }
-
-        function playMobileFlip(beforeRects) {
-          if (!beforeRects || !beforeRects.size) return;
-          var rows = Array.from(document.querySelectorAll('#carListMobile .swipe-row[data-car-id]'));
-          rows.forEach(function (rowEl) {
-            var key = rowEl.getAttribute('data-car-id');
-            var prev = key ? beforeRects.get(key) : null;
-            if (!prev) return;
-            var next = rowEl.getBoundingClientRect();
-            var dy = prev.top - next.top;
-            if (Math.abs(dy) < 1) return;
-            rowEl.style.transition = 'none';
-            rowEl.style.transform = 'translate3d(0,' + dy + 'px,0)';
-          });
-          requestAnimationFrame(function () {
-            rows.forEach(function (rowEl) {
-              if (!rowEl.style.transform) return;
-              rowEl.style.transition = 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)';
-              rowEl.style.transform = '';
-            });
-          });
-        }
-
         function clearDragPreviewStyles() {
           document.querySelectorAll('#carListMobile .swipe-row').forEach(function (rowEl) {
             rowEl.classList.remove('row-move-source', 'row-move-gap-target', 'row-move-neighbor');
@@ -4069,18 +4043,7 @@
           }
         }
 
-        function setPreviewList(previewList, targetBeforeIndex) {
-          if (!drag) return;
-          drag.previewList = previewList;
-          if (!isMobileMoveLayout()) return;
-          var beforeRects = isMobileMoveLayout() ? captureMobileRowRects() : null;
-          window.__carListCache = previewList;
-          renderCarList(previewList);
-          if (isMobileMoveLayout()) {
-            applyDragPreviewStyles(drag.selectedCarIds, targetBeforeIndex);
-            playMobileFlip(beforeRects);
-          }
-        }
+        // Note: preview khi kéo chỉ highlight vị trí thả để tránh render lại list liên tục (giảm lag).
 
         function applyMoveBlock(list, indices, targetBeforeIndex) {
           indices = indices
@@ -4323,7 +4286,8 @@
             } catch (_) {
               baseList = window.__carListCache || [];
             }
-            setPreviewList(applyMoveBlock(baseList, drag.indices, drag.targetBefore), drag.targetBefore);
+            // Chỉ highlight target, không reorder DOM khi đang kéo.
+            applyDragPreviewStyles(drag.selectedCarIds, drag.targetBefore);
           });
         }
 
@@ -4380,10 +4344,7 @@
           var cx = lp.lastX != null ? lp.lastX : lp.x;
           var cy = lp.lastY != null ? lp.lastY : lp.y;
           drag.targetBefore = yToInsertIndex(cy);
-          try {
-            var previewBase = JSON.parse(drag.snapshot);
-            setPreviewList(applyMoveBlock(previewBase, drag.indices, drag.targetBefore), drag.targetBefore);
-          } catch (_) {}
+          applyDragPreviewStyles(drag.selectedCarIds, drag.targetBefore);
           ghostEl.style.transform =
             'translate3d(' + (cx - drag.offX) + 'px,' + (cy - drag.offY) + 'px,0) scale(0.94)';
           showCancelZone(true);
