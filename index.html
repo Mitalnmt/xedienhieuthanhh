@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,1702 +10,576 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      height: 100%;
-      background-color: #000000;
-    }
-
-    :root {
-      --topbar-height: 44px;
-      --topbar-bg: rgba(16, 16, 16, 0.92);
-      --topbar-border: rgba(255, 255, 255, 0.10);
-      --topbar-fg: rgba(255, 255, 255, 0.92);
-      --btn-bg: rgba(255, 255, 255, 0.06);
-      --btn-bg-hover: rgba(255, 255, 255, 0.10);
-      --btn-border: rgba(255, 255, 255, 0.14);
-    }
-
     body {
-      padding-top: var(--topbar-height);
-      padding-bottom: 64px;
-    }
-
-    .topbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: var(--topbar-height);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 10px;
-      background: var(--topbar-bg);
-      color: var(--topbar-fg);
-      border-bottom: 1px solid var(--topbar-border);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      z-index: 9999;
-    }
-
-    .topbar-left,
-    .topbar-right {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .settings-overlay {
-      position: fixed;
-      top: var(--topbar-height);
-      left: 0;
-      right: 0;
-      bottom: 56px;
-      background: rgba(0, 0, 0, 0.55);
-      z-index: 9997;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: opacity 160ms ease, visibility 0s linear 180ms;
-    }
-
-    .settings-overlay.open {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      transition: opacity 160ms ease, visibility 0s;
-    }
-
-    .settings-drawer {
-      position: fixed;
-      top: var(--topbar-height);
-      left: 0;
-      bottom: 56px;
-      width: min(380px, 92vw);
-      z-index: 9998;
-      background: rgba(0, 0, 0, 0.92);
-      border-right: 1px solid rgba(255, 255, 255, 0.10);
-      box-shadow: 18px 0 60px rgba(0,0,0,0.6);
-      transform: translateX(-102%);
-      opacity: 0;
-      transition: transform 220ms cubic-bezier(.2,.9,.25,1), opacity 220ms ease;
+      font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
-    }
-
-    .settings-drawer.open {
-      transform: translateX(0);
-      opacity: 1;
-    }
-
-    .settings-drawer-header {
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
+      height: 100vh;
       justify-content: space-between;
-      gap: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-      background: rgba(16, 16, 16, 0.75);
     }
 
-    .settings-drawer-title {
-      margin: 0;
-      font-weight: 900;
-      font-size: 14px;
-      letter-spacing: 0.2px;
-      color: rgba(255,255,255,0.92);
-    }
-
-    .settings-drawer-body {
-      padding: 12px;
-      overflow: auto;
-    }
-
-    .settings-drawer-body label {
-      color: rgba(255,255,255,0.88);
-      font-weight: 800;
-      font-size: 13px;
-    }
-
-    .settings-drawer-body .form-control {
-      background: rgba(255,255,255,0.06);
-      border-color: rgba(255,255,255,0.14);
-      color: rgba(255,255,255,0.92);
-    }
-
-    .settings-drawer-body .form-control:focus {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(99, 179, 237, 0.75);
-      box-shadow: 0 0 0 0.2rem rgba(99, 179, 237, 0.18);
-      color: rgba(255,255,255,0.92);
-    }
-
-    .settings-drawer-footer {
-      padding: 10px 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.10);
-      background: rgba(16, 16, 16, 0.75);
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    .merge-color-list .merge-color-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      padding: 8px 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .merge-color-list .form-control-color {
-      width: 48px;
-      height: 40px;
-      padding: 2px;
-      border-radius: 8px;
-    }
-
-    #carMenuEditorContainer {
-      max-height: 70vh;
+    .modal-content {
+      max-height: 90vh; /* Chiều cao tối đa 90% viewport height */
       overflow-y: auto;
     }
 
-    #carMenuEditorContainer .dragging {
-      opacity: 0.6;
+    /* Tùy chỉnh cho modal chọn xe */
+    #carModal .modal-dialog {
+      max-width: 95%;
+      margin: 10px auto;
     }
 
-    .trash-bin {
-      border: 2px dashed #dc3545;
-      color: #dc3545;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-weight: 600;
-    }
-
-    .trash-bin.active {
-      background: rgba(220, 53, 69, 0.08);
-    }
-
-    .drop-placeholder {
-      display: inline-block;
-      width: 52px;
-      height: 32px;
-      border: 2px dashed #0d6efd;
-      border-radius: 6px;
-      vertical-align: middle;
-    }
-
-    .icon-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 30px;
-      border-radius: 9px;
-      border: 1px solid var(--btn-border);
-      background: var(--btn-bg);
-      color: var(--topbar-fg);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .icon-btn:hover {
-      background: var(--btn-bg-hover);
-    }
-
-    .icon-btn:active {
-      transform: translateY(1px);
-    }
-
-    .icon-btn:focus-visible {
-      outline: 2px solid rgba(99, 179, 237, 0.9);
-      outline-offset: 2px;
-    }
-
-    .icon-btn svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .bottom-bar {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 56px;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      padding: 0 8px 0 10px;
-      background: rgba(16, 16, 16, 0.92);
-      border-top: 1px solid rgba(255, 255, 255, 0.10);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      z-index: 10002;
-      transform: translateZ(0);
-      backface-visibility: hidden;
-    }
-
-    .bottom-bar-center {
-      justify-self: center;
-    }
-
-    .bottom-bar-exit-multi {
-      justify-self: end;
-      width: 36px;
-      height: 36px;
-      padding: 0;
-      border-radius: 10px;
-      font-weight: 900;
-      line-height: 1;
-      font-size: 1.1rem;
-      color: rgba(255, 255, 255, 0.92);
-      background: rgba(255, 80, 80, 0.22);
-      border: 1px solid rgba(255, 120, 120, 0.35);
-      cursor: pointer;
-      visibility: hidden;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 160ms ease, visibility 0s linear 160ms;
-    }
-
-    body.row-multi-select-active .bottom-bar-exit-multi,
-    body.row-move-mode-active .bottom-bar-exit-multi {
-      visibility: visible;
-      opacity: 1;
-      pointer-events: auto;
-      transition: opacity 160ms ease, visibility 0s;
-    }
-
-    body.row-move-mode-active .car-list-desktop,
-    body.row-move-mode-active .car-list-mobile {
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    body.row-move-mode-active .swipe-row {
-      touch-action: none;
-    }
-
-    /* Vùng thả để hủy lần kéo (phía trên bottom bar) */
-    .move-drag-cancel-zone {
-      position: fixed;
-      left: 50%;
-      bottom: 72px;
-      transform: translateX(-50%) scale(1);
-      z-index: 10006;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      min-width: 120px;
-      padding: 12px 18px;
-      border-radius: 16px;
-      background: rgba(180, 40, 40, 0.85);
-      border: 2px solid rgba(255, 180, 180, 0.5);
-      color: #fff;
-      font-weight: 900;
-      font-size: 0.85rem;
-      pointer-events: none;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-    }
-
-    .move-drag-cancel-zone.is-visible {
-      display: flex;
-    }
-
-    .move-drag-cancel-zone.is-hover {
-      transform: translateX(-50%) scale(1.12);
-      background: rgba(220, 60, 60, 0.95);
-      box-shadow: 0 12px 36px rgba(255, 80, 80, 0.35);
-    }
-
-    .move-drag-cancel-zone .move-drag-cancel-icon {
-      font-size: 1.4rem;
-      line-height: 1;
-    }
-
-    /* Ghost kéo (desktop + mobile) */
-    .move-drag-ghost {
-      position: fixed;
-      z-index: 10007;
-      pointer-events: none;
-      left: 0;
-      top: 0;
-      transform: translate3d(0, 0, 0);
-      transition: none;
-      opacity: 0.96;
-      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.45));
-    }
-
-    .move-drag-ghost-inner {
-      background: rgba(28, 28, 32, 0.96);
-      border: 2px solid rgba(120, 200, 255, 0.55);
-      border-radius: 12px;
-      padding: 8px 12px;
-      font-weight: 900;
-      font-size: 0.88rem;
-      color: rgba(255, 255, 255, 0.95);
-      max-width: min(92vw, 360px);
-    }
-
-    .move-drag-ghost-inner.move-drag-ghost-row {
-      padding: 0;
-      overflow: hidden;
-      min-width: min(92vw, 420px);
-    }
-
-    .move-drag-ghost-inner.move-drag-ghost-row.is-group::after {
-      content: attr(data-group-count);
-      position: absolute;
-      right: 10px;
-      top: 8px;
-      min-width: 28px;
-      height: 22px;
-      border-radius: 999px;
-      padding: 0 8px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 214, 10, 0.95);
-      color: #111;
-      font-size: 0.72rem;
-      font-weight: 900;
-      border: 1px solid rgba(0, 0, 0, 0.28);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.38);
-    }
-
-    .move-drag-ghost-inner.move-drag-ghost-row .swipe-content,
-    .move-drag-ghost-inner.move-drag-ghost-row .mobile-row-stack,
-    .move-drag-ghost-inner.move-drag-ghost-row .mobile-row {
-      background: transparent;
-    }
-
-    .move-drag-ghost-inner.move-drag-ghost-row .swipe-content {
-      transform: none !important;
-    }
-
-    .move-drag-ghost-stack {
+    #carModal .modal-body {
+      padding: 15px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 10px;
     }
 
-    .move-drag-ghost-stack .move-drag-ghost-card {
-      transform: scale(0.94);
-      transform-origin: center bottom;
-      margin-bottom: -6px;
-      border-radius: 10px;
-      padding: 6px 10px;
-      background: rgba(40, 44, 52, 0.98);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-    }
-
-    .move-drag-ghost-stack .move-drag-ghost-card:first-child {
-      transform: scale(1);
-      z-index: 3;
-    }
-
-    body.row-move-dragging {
-      cursor: grabbing;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .move-drag-cancel-zone {
-        transition: none;
-      }
-    }
-
-    .bottom-bar .btn {
-      border-radius: 10px;
-      padding: 8px 14px;
-      font-weight: 600;
-    }
-
-    /* Thanh thao tác nhiều dòng — ngay trên bottom bar */
-    .multi-select-action-bar {
-      display: none;
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 56px;
-      z-index: 10001;
-      min-height: 48px;
-      padding: 6px 10px;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+    #carModal .mb-2 {
+      display: flex;
       flex-wrap: wrap;
-      background: rgba(22, 22, 22, 0.96);
-      border-top: 1px solid rgba(255, 255, 255, 0.10);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.35);
+      justify-content: flex-start;
+      gap: 5px;
     }
 
-    body.row-multi-select-active .multi-select-action-bar {
-      display: flex;
+    #carModal .btn-secondary {
+      min-width: 60px;
+      margin: 2px !important;
+      padding: 8px 12px;
     }
 
-    .multi-select-action-bar .btn {
-      font-weight: 800;
-      padding: 6px 10px;
-      border-radius: 10px;
-      font-size: 0.82rem;
-      transition: transform 180ms ease, opacity 180ms ease;
-    }
-
-    .multi-select-action-bar .lbl-full {
-      display: inline;
-    }
-
-    .multi-select-action-bar .lbl-short {
-      display: none;
-    }
-
-    @media (max-width: 768px) {
-      .multi-select-action-bar {
-        gap: 6px;
-        padding: 6px 8px;
+    /* Responsive adjustments */
+    @media (min-width: 768px) {
+      #carModal .modal-dialog {
+        max-width: 700px;
       }
-      .multi-select-action-bar .lbl-full {
-        display: none;
+
+      #carModal .mb-2 {
+        justify-content: flex-start;
       }
-      .multi-select-action-bar .lbl-short {
-        display: inline;
+
+      #carModal .btn-secondary {
+        min-width: 70px;
+        padding: 10px 15px;
       }
-      .multi-select-action-bar .btn {
-        padding: 6px 8px;
-        font-size: 0.78rem;
-      }
-    }
-
-    .multi-select-action-bar .ms-time-mode-btn {
-      display: none;
-      opacity: 0;
-      transform: translateY(8px);
-    }
-
-    .multi-select-action-bar.time-mode .ms-default-btn {
-      display: none;
-    }
-
-    .multi-select-action-bar.time-mode .ms-time-mode-btn {
-      display: inline-flex;
-      opacity: 1;
-      transform: translateY(0);
-      animation: ms-time-in 180ms ease;
-    }
-
-    @keyframes ms-time-in {
-      0% { opacity: 0; transform: translateY(10px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-
-    .row-time-quick-pad {
-      position: fixed;
-      z-index: 10010;
-      display: none;
-      flex-direction: column;
-      gap: 4px;
-      padding: 6px 7px;
-      border-radius: 12px;
-      background: rgba(14, 14, 16, 0.96);
-      border: 1px solid rgba(255,255,255,0.16);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(8px);
-      max-width: min(96vw, 330px);
-    }
-
-    .row-time-quick-pad.show {
-      display: flex;
-    }
-
-    .row-time-quick-pad .btn {
-      min-width: 44px;
-      border-radius: 8px;
-      font-size: 0.76rem;
-      font-weight: 900;
-      padding: 4px 6px;
-    }
-
-    .row-time-quick-pad .rtqp-row {
-      display: grid;
-      width: 100%;
-      gap: 4px;
-    }
-
-    .row-time-quick-pad .rtqp-row.top {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .row-time-quick-pad .rtqp-row.bottom {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    /*
-     * Rainbow chọn nhiều dòng (mobile): CHỈ dùng ::after.
-     * .swipe-content::before đã dùng cho vạch accent trái — thêm ::before cho rainbow sẽ bị cascade ghi đè → viền nhìn rất mỏng.
-     */
-    .rainbow-select-target {
-      position: relative;
-      z-index: 0;
-      overflow: visible;
-    }
-
-    .rainbow-select-target::after {
-      content: "";
-      position: absolute;
-      inset: -7px;
-      border-radius: inherit;
-      background: linear-gradient(
-        90deg,
-        #ff004c,
-        #ffb300,
-        #fffde7,
-        #00ffd5,
-        #4fc3f7,
-        #ea80fc,
-        #ff004c
-      );
-      pointer-events: none;
-      z-index: 0;
-      filter: saturate(1.2) brightness(1.08);
-      background-size: 300% 100%;
-      background-position: 0% 50%;
-      animation: rainbow-border-slide 2.6s linear infinite;
-      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      padding: 4px;
-      opacity: 1;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.88);
-    }
-
-    #car-list tbody tr.car-data-row.row-multi-selected > td {
-      position: relative;
-    }
-
-    #car-list tbody tr.car-data-row.row-multi-selected {
-      position: relative;
-      animation: rainbow-row-outline 2.6s linear infinite;
-      outline: 5px solid #ff004c;
-      outline-offset: -2px;
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.65), 0 0 14px rgba(0, 230, 255, 0.28);
-    }
-
-    @keyframes rainbow-row-outline {
-      0% { outline-color: #ff004c; }
-      16% { outline-color: #ffb300; }
-      33% { outline-color: #a8ff00; }
-      50% { outline-color: #00ffd5; }
-      66% { outline-color: #2a7bff; }
-      83% { outline-color: #b200ff; }
-      100% { outline-color: #ff004c; }
-    }
-
-    .car-list-mobile .swipe-row.row-multi-selected .swipe-content {
-      border-radius: 10px;
-    }
-
-    .car-list-mobile .swipe-row.row-multi-selected .swipe-content.rainbow-select-target::after {
-      border-radius: 12px;
-    }
-
-
-    /* Kéo phải để gợi ý bật chọn nhiều (mobile) */
-    .swipe-row.row-select-pull-hint {
-      position: relative;
-      z-index: 4;
-    }
-
-    .swipe-row.row-select-pull-hint .swipe-content {
-      border-radius: 10px;
-      box-shadow:
-        calc(-12px * var(--row-pull, 0)) 0 calc(16px + 20px * var(--row-pull, 0))
-          rgba(0, 230, 255, calc(0.14 + 0.26 * var(--row-pull, 0))),
-        inset calc(2px + 4px * var(--row-pull, 0)) 0 calc(8px + 8px * var(--row-pull, 0))
-          rgba(255, 255, 255, calc(0.06 + 0.12 * var(--row-pull, 0)));
-    }
-
-    /* Desktop: kéo phải gợi ý chọn nhiều */
-    #car-list tbody tr.car-data-row.row-select-pull-hint {
-      --pull-tx: 0px;
-      --row-pull: 0;
-      position: relative;
-      z-index: 3;
-      transform: translateX(var(--pull-tx));
-      transition: none;
-      filter: brightness(calc(1 + 0.05 * var(--row-pull, 0)));
-      box-shadow: inset calc(3px + 5px * var(--row-pull, 0)) 0
-        calc(10px + 12px * var(--row-pull, 0)) rgba(0, 230, 255, calc(0.12 + 0.2 * var(--row-pull, 0)));
-    }
-
-    #car-list.select-mode tbody tr.car-data-row {
-      cursor: pointer;
-    }
-
-    body.row-multi-select-active .car-menu-panel,
-    body.row-move-mode-active .car-menu-panel {
-      bottom: calc(56px + 48px);
-    }
-
-    body.row-multi-select-active .list-bottom-spacer,
-    body.row-move-mode-active .list-bottom-spacer {
-      height: 132px;
-    }
-
-    .car-menu-panel {
-      position: fixed;
-      top: var(--topbar-height);
-      left: 0;
-      right: 0;
-      bottom: 56px; /* match .bottom-bar height */
-      z-index: 9998;
-      display: flex;
-      background: rgba(0, 0, 0, 0.72);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 10px;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: opacity 160ms ease, visibility 0s linear 180ms;
-    }
-
-    .car-menu-panel.open {
-      flex-direction: column;
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      transition: opacity 160ms ease, visibility 0s;
-    }
-
-    .car-menu-sheet {
-      width: min(920px, 100%);
-      height: 100%;
-      margin: 0 auto;
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      border-radius: 14px;
-      background: rgba(0, 0, 0, 0.92);
-      box-shadow: 0 20px 80px rgba(0,0,0,0.55);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transform: translateY(10px) scale(0.985);
-      opacity: 0;
-      transition: transform 180ms cubic-bezier(.2,.9,.25,1), opacity 180ms ease;
-      will-change: transform, opacity;
-    }
-
-    .car-menu-panel.open .car-menu-sheet {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .car-menu-panel,
-      .car-menu-sheet,
-      .car-menu-body .btn.selected::after {
-        transition: none !important;
-        animation: none !important;
-      }
-      .rainbow-select-target::after {
-        transition: none !important;
-        animation: none !important;
-      }
-      #car-list tbody tr.car-data-row.row-multi-selected {
-        animation: none !important;
-      }
-      #car-list tbody tr.car-data-row.row-select-pull-hint {
-        transform: none !important;
-        filter: none !important;
-        box-shadow: none !important;
-      }
-      .swipe-row.row-select-pull-hint .swipe-content {
-        box-shadow: none !important;
-      }
-      .settings-overlay,
-      .settings-drawer {
-        transition: none !important;
-      }
-    }
-
-    .car-menu-header {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      padding: 10px 10px 8px;
-    }
-
-    .car-menu-tabs {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      align-items: stretch;
-      gap: 6px;
-      padding: 0 10px 8px;
-      overflow: hidden;
-    }
-
-    .car-menu-tab {
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.06);
-      color: rgba(255, 255, 255, 0.92);
-      padding: 7px 8px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      cursor: pointer;
-      user-select: none;
-      min-width: 0;
-      min-height: 34px;
-    }
-
-    @media (max-width: 768px) {
-      .car-menu-tabs {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-      .car-menu-tab {
-        white-space: normal;
-        overflow: visible;
-        text-overflow: clip;
-        line-height: 1.15;
-        text-align: center;
-      }
-    }
-
-    .car-menu-tab.active {
-      outline: 2px solid rgba(255, 255, 255, 0.55);
-      outline-offset: -2px;
-    }
-
-    .car-menu-body {
-      flex: 1;
-      overflow: auto;
-      padding: 6px 10px 12px;
-    }
-
-    /* Chữ trong menu: đậm + to hơn (màu theo theme tối) */
-    #carMenuSheet,
-    #carMenuSheet * {
-      color: rgba(255, 255, 255, 0.92);
-      font-weight: 800;
-      font-size: 14px;
-    }
-
-    .car-menu-body .btn.selected {
-      position: relative;
-      z-index: 1;
-      isolation: isolate;
-      outline: none;
-      transform: scale(1.03);
-      box-shadow:
-        0 0 0 2px rgba(255, 255, 255, 0.88),
-        0 0 12px rgba(0, 220, 255, 0.35);
-    }
-
-    /* Menu chọn xe: viền rainbow vừa phải (một lớp) */
-    .car-menu-body .btn.selected::after {
-      content: "";
-      position: absolute;
-      inset: -4px;
-      border-radius: inherit;
-      background: linear-gradient(
-        90deg,
-        #ff004c,
-        #ffb300,
-        #fff176,
-        #00ffd5,
-        #40c4ff,
-        #e040fb,
-        #ff004c
-      );
-      pointer-events: none;
-      z-index: 1;
-      filter: saturate(1.1);
-      background-size: 300% 100%;
-      background-position: 0% 50%;
-      animation: rainbow-border-slide 2.6s linear infinite;
-      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      padding: 3px;
-      opacity: 1;
-    }
-
-    @keyframes rainbow-border-slide {
-      to { background-position: 300% 50%; }
-    }
-
-    .btn-car-out {
-      opacity: 0.45;
-      filter: grayscale(1);
     }
 
     .countdown {
-      font-weight: 900;
-      color: #ff5a5a;
-      letter-spacing: 0.2px;
-      font-size: 1.02em;
+      font-weight: bold;
+      color: red;
+      font-size: 1.1em;
     }
-
     .countdown.urgent {
-      color: #ff2d2d;
-      text-shadow: 0 0 10px rgba(255, 45, 45, 0.28);
+      color: #d10000; /* Màu đỏ đậm khi gần hết giờ */
+      text-shadow: 0 0 5px rgba(255,0,0,0.3);
     }
 
-    /* Toast hết giờ: icon ⏱ + mã xe (xuống dòng khi nhiều) */
-    #overdueToastMass .overdue-toast-inner {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.45rem;
-      min-width: 0;
+    .done {
+      background-color: lightgreen;
     }
-
-    #overdueToastMass .overdue-toast-icon {
-      font-size: 1.4rem;
-      line-height: 1;
-      flex-shrink: 0;
-      user-select: none;
+    .overdue {
+      background-color: #ff7f7f; /* Màu đỏ nhạt */
+      animation: blink 1s infinite alternate; /* Thêm hiệu ứng nhấp nháy */
     }
-
-    #overdueToastMass .overdue-toast-codes {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px 6px;
-      align-items: center;
-      min-width: 0;
-      flex: 1;
-    }
-
-    #overdueToastMass .overdue-toast-codes .badge {
-      font-weight: 700;
-      font-size: 0.85rem;
-    }
-
-    tr.done > td {
-      background-color: rgba(40, 167, 69, 0.18) !important;
-    }
-
-    tr.overdue > td {
-      background-color: rgba(255, 99, 99, 0.20) !important;
-      animation: blink 1s infinite alternate;
-    }
-
-    /* Trùng mã + hết giờ: giống logic/style tinh thần index.html + style.css */
-    tr.null-time-done > td {
-      background-color: rgba(69, 90, 100, 0.55) !important;
-      color: rgba(255, 255, 255, 0.92) !important;
-    }
-
-    /* Vàng đặc giống style.css — table-dark trước đây làm vàng rgba mờ thành xám/lạ màu */
-    tr.duplicate-done > td {
-      background-color: #fff8b0 !important;
-      color: #1a1a1a !important;
-      animation: blink-yellow 1s infinite alternate;
-    }
-
-    tr.duplicate-overdue > td {
-      background-color: #fff8b0 !important;
-      color: #1a1a1a !important;
-      animation: blink-yellow-red 1s infinite alternate;
-    }
-
-    @keyframes blink-yellow {
-      from { background-color: #fff8b0 !important; }
-      to { background-color: #ffe066 !important; }
-    }
-
-    @keyframes blink-yellow-red {
-      0% { background-color: #fff8b0 !important; }
-      100% { background-color: #ff7f7f !important; }
-    }
-
-    #car-list tbody tr.duplicate-overdue {
-      position: relative;
-    }
-
-    #car-list tbody tr.duplicate-overdue::after {
-      content: '';
-      position: absolute;
-      top: -2px;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      border: 2px solid #0d6efd;
-      border-radius: 4px;
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    #car-list tbody tr.duplicate-overdue td {
-      position: relative;
-    }
-
-    #car-list tbody tr.duplicate-overdue td::after {
-      content: '';
-      position: absolute;
-      top: 1px;
-      right: 1px;
-      bottom: 1px;
-      left: 1px;
-      border: 2px solid #0d6efd;
-      pointer-events: none;
-      border-radius: 3px;
-      z-index: 3;
-    }
-
     @keyframes blink {
       from { opacity: 1; }
-      to { opacity: 0.74; }
+      to { opacity: 0.7; }
     }
 
-    .swipe-row.null-time-done .swipe-content {
-      background: rgba(69, 90, 100, 0.72) !important;
-    }
-
-    .swipe-row.duplicate-done:not(.open) .swipe-content {
-      animation: swipe-blink-yellow 1s infinite alternate;
-      color: rgba(0, 0, 0, 0.88);
-    }
-
-    .swipe-row.duplicate-overdue:not(.open) .swipe-content {
-      animation: swipe-blink-yellow-red 1s infinite alternate;
-      color: rgba(0, 0, 0, 0.88);
-    }
-
-    /* Vàng sáng, alpha cao trên nền tối để không bị “vàng bẩn” */
-    @keyframes swipe-blink-yellow {
-      from { background: rgba(255, 248, 176, 0.88); }
-      to { background: rgba(255, 224, 70, 0.95); }
-    }
-
-    @keyframes swipe-blink-yellow-red {
-      0% { background: rgba(255, 248, 176, 0.88); }
-      100% { background: rgba(255, 127, 127, 0.92); }
-    }
-
-    /* Nút C/R: giống index.html + style.css (Bootstrap warning/success, không bị table-dark làm méo màu) */
-    .btn-status {
-      min-width: 2.5em;
-      font-weight: bold;
-      font-size: 1.1em;
-      padding: 0.3em 1em;
-      transition: background-color 0.25s, color 0.25s, transform 0.1s;
-    }
-
-    .btn-status.btn-sm {
-      min-width: 2em;
-      font-size: 0.9em;
-      padding: 0.2em 0.6em;
-    }
-
-    .btn-status:active {
-      transform: scale(0.96);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) inset;
-      opacity: 0.85;
-    }
-
-    #car-list td:nth-child(2) {
-      width: 70px;
-      padding: 4px 6px;
-      line-height: 1.1;
-      text-align: center;
-    }
-
-    #car-list td:nth-child(2) .btn-status {
-      min-width: 2.2em;
-      font-size: 0.9em;
-      padding: 0.25em 0.5em;
-      margin: 0;
-      display: block;
-      width: 100%;
-    }
-
-    /* Ghi chú: hàng riêng full-width dưới dòng xe (desktop) */
-    #car-list tbody tr.car-note-row > td {
-      padding: 5px 12px 10px;
-      border-top: 1px solid rgba(255, 255, 255, 0.07);
-      vertical-align: top;
-      --bs-table-accent-bg: transparent;
-      background-color: rgba(0, 0, 0, 0.32) !important;
-    }
-
-    .car-note-line {
-      display: block;
-      width: 100%;
-      box-sizing: border-box;
-      font-weight: 800;
-      font-size: 0.82rem;
-      line-height: 1.3;
-      text-align: left;
-      font-style: italic;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-    }
-
-    /* Mặc định nền tối: xanh lá */
-    .car-note-line--tone-default {
-      color: #69f0ae;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
-    }
-
-    /* Dòng xanh (đã Vào): đỏ để tách khỏi nền xanh */
-    .car-note-line--tone-on-done {
-      color: #ff5252;
-      text-shadow: 0 0 1px rgba(0, 0, 0, 0.35);
-    }
-
-    /* Quá giờ (nền đỏ): xanh lá sáng */
-    .car-note-line--tone-on-overdue {
-      color: #b9f6ca;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-    }
-
-    /* Trùng mã (nền vàng): đỏ đậm */
-    .car-note-line--tone-on-dup {
-      color: #bf360c;
-      text-shadow: none;
-    }
-
-    /* Trùng + quá giờ (vàng/đỏ): xanh lá đậm */
-    .car-note-line--tone-on-dup-over {
-      color: #1b5e20;
-      text-shadow: 0 0 1px rgba(255, 255, 255, 0.4);
-    }
-
-    /* Null-time (nền xám): đỏ — tách khỏi nền, khác tông xanh mặc định */
-    .car-note-line--tone-null {
-      color: #ff5252;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-    }
-
-    #car-list .btn.btn-status.btn-warning,
-    .car-list-mobile .btn.btn-status.btn-warning {
-      color: #000 !important;
-      background-color: #ffc107 !important;
-      border-color: #ffc107 !important;
-    }
-
-    #car-list .btn.btn-status.btn-success,
-    .car-list-mobile .btn.btn-status.btn-success {
-      color: #fff !important;
-      background-color: #198754 !important;
-      border-color: #198754 !important;
-    }
-
-    .car-list-mobile .in4 .btn-status {
-      display: block;
-      width: 100%;
-      max-width: 100%;
-    }
-
-    .mobile-row-stack {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      min-width: 0;
-    }
-
-    .mobile-note-row {
-      padding: 0 10px 8px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .mobile-note-row .car-note-line {
-      font-size: 0.76rem;
-      line-height: 1.28;
-    }
-
-    .car-code-btn {
-      font-weight: 900;
-      border-radius: 10px;
-      padding: 4px 10px;
-      border: 2px solid rgba(255,255,255,0.15);
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.92);
-    }
-
-    .car-code-btn.no-border {
-      border-color: transparent;
-    }
-
-    .old-car-code-italic {
-      font-style: italic;
-      font-size: 12px;
-      font-weight: 800;
-      opacity: 0.82;
-      margin-top: 2px;
-    }
-
-    /* Responsive: switch to mobile cards */
-    .car-list-mobile {
-      display: none;
-    }
-
-    @media (max-width: 768px) {
-      .car-list-desktop {
-        display: none;
-      }
-      .car-list-mobile {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-    }
-
-    /* Mobile compact rows + swipe actions (like mail) */
-    .swipe-row {
-      --row-bg-solid: rgba(0,0,0,0.92);
-      --row-accent: transparent;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 12px;
-      background: var(--row-bg-solid);
-      touch-action: pan-y; /* allow vertical scroll */
-      transition:
-        transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 180ms ease,
-        filter 180ms ease,
-        box-shadow 220ms ease;
-      will-change: transform;
-    }
-
-    .swipe-row.done {
-      --row-bg-solid: rgba(40, 167, 69, 0.32);
-      --row-accent: rgba(40, 167, 69, 0.95);
-    }
-
-    .swipe-row.overdue {
-      --row-bg-solid: rgba(255, 99, 99, 0.34);
-      --row-accent: rgba(255, 45, 45, 0.95);
-      animation: blink 1s infinite alternate;
-    }
-
-    /* Cho viền rainbow chọn dòng không bị cắt bởi overflow */
-    .car-list-mobile .swipe-row.row-multi-selected {
-      overflow: visible;
-    }
-
-    .swipe-actions {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      align-items: stretch;
-      gap: 0;
-      padding: 0;
-      background: rgba(16,16,16,0.85);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 140ms ease;
-      /* Mặc định dưới .swipe-content (z-index:1) — khi mở swipe phải kéo lên trên để nút Time/Ghi chú/Xóa nhận đúng cú chạm (tránh phải bấm 2 lần) */
-      z-index: 0;
-    }
-
-    .swipe-row.open .swipe-actions {
-      opacity: 1;
-      pointer-events: auto;
-      z-index: 10;
-    }
-
-    /* Khi đang kéo: opacity do JS set theo tỉ lệ (analog), không nhảy 0/1 */
-    .swipe-row.dragging .swipe-actions {
-      z-index: 10;
-    }
-
-    /* Hiệu ứng “vỡ” khi xóa dòng mobile */
-    .swipe-row.delete-shatter {
-      pointer-events: none;
-      animation: delete-shatter-core 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-
-    .swipe-row.delete-shatter::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      z-index: 20;
-      pointer-events: none;
-      background:
-        linear-gradient(118deg, transparent 44%, rgba(255, 255, 255, 0.55) 49.2%, rgba(255, 255, 255, 0.72) 50%, transparent 55.5%),
-        linear-gradient(32deg, transparent 58%, rgba(255, 200, 200, 0.45) 62%, transparent 67%),
-        linear-gradient(-8deg, transparent 72%, rgba(255, 255, 255, 0.35) 76%, transparent 80%);
-      opacity: 0;
-      animation: delete-shatter-cracks 0.42s ease-out forwards;
-    }
-
-    @keyframes delete-shatter-cracks {
-      0% {
-        opacity: 0;
-        transform: scale(1);
-      }
-      18% {
-        opacity: 1;
-        transform: scale(1.02);
-      }
-      55% {
-        opacity: 0.85;
-        transform: scale(1.04);
-      }
-      100% {
-        opacity: 0;
-        transform: scale(1.08);
-      }
-    }
-
-    @keyframes delete-shatter-core {
-      0% {
-        opacity: 1;
-        filter: brightness(1) blur(0);
-        transform: scale(1);
-      }
-      12% {
-        filter: brightness(1.55) blur(0);
-        transform: scale(1.02);
-      }
-      100% {
-        opacity: 0;
-        filter: brightness(0.15) blur(7px);
-        transform: scale(0.88) rotate(-1deg);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .swipe-row.delete-shatter,
-      .swipe-row.delete-shatter::after {
-        animation-duration: 0.12s !important;
-      }
-
-      @keyframes delete-shatter-core {
-        0% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0;
-        }
-      }
-
-      @keyframes delete-shatter-cracks {
-        0%,
-        100% {
-          opacity: 0;
-        }
-      }
-    }
-
-    .swipe-actions button {
-      border: 0;
-      border-left: 1px solid rgba(255,255,255,0.10);
-      background: transparent;
-      color: rgba(255,255,255,0.92);
-      font-weight: 900;
-      font-size: 12px;
-      padding: 0 12px;
-      min-width: 72px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .swipe-actions button.action-time { background: rgba(33, 150, 243, 0.18); }
-    .swipe-actions button.action-note { background: rgba(0, 255, 213, 0.12); }
-    .swipe-actions button.action-delete { background: rgba(255, 0, 76, 0.18); }
-
-    .swipe-content {
-      position: relative;
-      z-index: 1;
-      transform: translateX(0);
-      transition: transform 160ms ease;
-      /* solid cover so actions are not visible before swipe */
-      background: var(--row-bg-solid);
-      width: 100%;
-    }
-
-    body.row-move-dragging .swipe-row.row-move-source {
-      filter: saturate(0.82);
-    }
-
-    body.row-move-dragging .swipe-row.row-move-source .swipe-content {
-      opacity: 0;
-      transform: scale(0.92);
-    }
-
-    body.row-move-dragging .swipe-row.row-move-gap-target {
-      box-shadow:
-        0 0 0 1px rgba(120, 200, 255, 0.24),
-        inset 0 0 0 1px rgba(120, 200, 255, 0.12);
-    }
-
-    body.row-move-dragging .swipe-row.row-move-neighbor {
-      transform: scale(0.986);
-    }
-
-    .swipe-content::before {
-      content: "";
-      position: absolute;
+    /* Bottom bar with floating design */
+    #bottomBar {
+      position: fixed;
       left: 0;
-      top: 0;
       bottom: 0;
-      width: 4px;
-      background: var(--row-accent);
-      opacity: 0.95;
-      pointer-events: none;
-    }
-
-    .swipe-row.open .swipe-content {
-      transform: translateX(calc(-1 * var(--actions-width, 216px)));
-    }
-
-    .mobile-row {
-      display: grid;
-      grid-template-columns: 54px 92px 1fr 64px 68px;
+      width: 100vw;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(0,0,0,0.1);
+      z-index: 9999;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+      height: 60px;
+      display: flex;
+      justify-content: space-around;
       align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
+      padding: 0 20px;
+      transition: all 0.3s ease;
     }
 
-    .mobile-row .btn {
-      padding: 4px 8px;
-      border-radius: 10px;
-      font-weight: 900;
-      line-height: 1;
+    #bottomBar .btn {
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(0,0,0,0.1);
     }
 
-    .mobile-time {
-      font-size: 10px;
-      font-weight: 900;
-      opacity: 0.9;
-      line-height: 1.0;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      white-space: nowrap;
+    #bottomBar .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
 
-    /* Giờ ra (Out) — amber sáng, tách khỏi nền tối; giờ vào (In) — xanh */
-    .time-out {
-      color: #ffca28;
-      font-weight: 900;
+    #bottomBar .btn:active {
+      transform: translateY(0);
     }
 
-    .time-in {
-      color: #64b5f6;
-      font-weight: 900;
-    }
-
-    .mobile-code {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-
-    .mobile-code .car-code-btn {
-      width: fit-content;
-      max-width: 100%;
-    }
-
-    .mobile-code .old-car-code-italic {
-      margin-top: 0;
-    }
-
-      @media (max-width: 360px) {
-      .mobile-row {
-        grid-template-columns: 50px 82px 1fr 58px 56px;
-        gap: 6px;
-        padding: 7px 8px;
-      }
-      .mobile-time {
-        font-size: 9px;
-      }
-      .mobile-row .btn {
-        padding: 4px 6px;
-        font-size: 12px;
-      }
-      .btn-status.btn-sm {
-        padding: 0.2em 0.45em;
-      }
-      .countdown {
-        font-size: 0.98em;
-      }
-      .swipe-actions button {
-        min-width: 68px;
-        padding: 0 10px;
-      }
-    }
-
-    /* Spacer so bottom-bar doesn't cover last rows */
-    .list-bottom-spacer {
-      height: 84px;
+    /* Virtual spacer to prevent content from being hidden */
+    #bottomSpacer {
+      height: 50px; /* Reduced height since we have spacer row in table */
       width: 100%;
     }
 
-    /* Force readable disabled/out car buttons even if group color exists */
-    .car-menu-body .btn.btn-car-out {
-      background-color: #3a3a3a !important;
-      border-color: #4a4a4a !important;
-      color: #bdbdbd !important;
+    /* Spacer row styling */
+    .spacer-row {
+      background: transparent !important;
+      border: none !important;
     }
 
-    .car-menu-actions {
-      padding: 10px;
-      border-top: 1px solid rgba(255, 255, 255, 0.10);
-      background: rgba(16, 16, 16, 0.92);
-      display: flex;
-      justify-content: center;
-      gap: 12px;
+    .spacer-row td {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+      height: 100px !important;
     }
 
-    .car-menu-actions .btn {
-      white-space: nowrap;
+    body {
+      padding-bottom: 80px; /* Giảm padding bottom vì đã có spacer row */
     }
 
-    .action-label-short {
-      display: none;
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      #bottomBar {
+        height: 55px;
+        padding: 0 15px;
+      }
+
+      #bottomBar .btn {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+
+      #bottomSpacer {
+        height: 40px;
+      }
+
+      body {
+        padding-bottom: 60px;
+      }
     }
 
     @media (max-width: 480px) {
-      .action-label-full {
-        display: none;
+      #bottomBar {
+        height: 50px;
+        padding: 0 10px;
       }
-      .action-label-short {
-        display: inline;
+
+      #bottomBar .btn {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      #bottomSpacer {
+        height: 35px;
+      }
+
+      body {
+        padding-bottom: 50px;
+      }
+    }
+
+    /* Modal cài đặt - responsive cho mobile */
+    @media (max-width: 768px) {
+      #settingsModal .modal-dialog {
+        margin: 10px;
+        margin-bottom: 80px; /* Tạo khoảng cách với bottomBar */
+        max-height: calc(100vh - 90px); /* Giới hạn chiều cao */
+      }
+      
+      #settingsModal .modal-content {
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+      }
+      
+      #settingsModal .modal-footer {
+        flex-wrap: wrap;
+        gap: 5px;
+        padding: 10px;
+      }
+      
+      #settingsModal .modal-footer .btn {
+        flex: 1;
+        min-width: calc(50% - 5px);
+        margin: 2px 0;
+        font-size: 0.85rem;
+        padding: 6px 8px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      #settingsModal .modal-dialog {
+        margin: 5px;
+        margin-bottom: 70px; /* Tăng khoảng cách cho màn hình nhỏ hơn */
+        max-height: calc(100vh - 80px);
+      }
+      
+      #settingsModal .modal-content {
+        max-height: calc(100vh - 90px);
+      }
+      
+      #settingsModal .modal-footer .btn {
+        font-size: 0.8rem;
+        padding: 5px 6px;
       }
     }
   </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar" role="banner" aria-label="Top bar">
-    <div class="topbar-left">
-      <button class="icon-btn" id="openSettingsBtn" type="button" title="Cài đặt" aria-label="Open settings">
-        <i class="fas fa-bars" aria-hidden="true"></i>
+  <!-- Main content -->
+  <div class="container mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="mb-0">Danh sách xe cho thuê</h3>
+          <button class="btn btn-outline-secondary btn-sm" id="fullscreenBtn" title="Toàn màn hình">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-.5.5h-1a.5.5 0 0 0 0 1H1v1a.5.5 0 0 0 1 0V7h1a.5.5 0 0 0 0-1H1V1.5a.5.5 0 0 0-.5-.5z"/>
+        <path d="M14.5 1a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h1a.5.5 0 0 1 0 1H16v1a.5.5 0 0 1-1 0V7h-1a.5.5 0 0 1 0-1h1V1.5a.5.5 0 0 1 .5-.5z"/>
+      </svg>
+    </button>
+
+    </div>
+    <table class="table table-striped" id="car-list">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>in4</th>
+          <th>Mã xe</th>
+          <th>Time</th>
+          <th>Còn lại</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- List of cars will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Floating bottom bar for Multiple Car Selection modal -->
+  <div id="multiSelectBottomBar" style="display:none; position:fixed; left:0; right:0; bottom:0; z-index:10001; background:#fff; border-top: 1px solid rgba(0,0,0,0.08); padding: 8px 12px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); height: 60px;">
+    <div class="container d-flex justify-content-center align-items-center w-100" style="gap:12px;">
+      <button class="btn btn-success" id="multiSelectGroupBtn" onclick="window.multipleCarSelection && window.multipleCarSelection.addSelectedCarsAsGroup()" disabled>
+        <i class="fas fa-layer-group"></i> Gộp thành nhóm
+      </button>
+      <button class="btn btn-primary" id="multiSelectAddBtn" onclick="window.multipleCarSelection && window.multipleCarSelection.addSelectedCarsIndividually()" disabled>
+        <i class="fas fa-plus"></i> Thêm riêng lẻ
       </button>
     </div>
-    <div class="topbar-right">
-      <button class="icon-btn" id="fullscreenBtn" type="button" title="Fullscreen" aria-label="Toggle fullscreen">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-    </div>
-  </header>
-
-  <!-- Settings drawer (trượt từ trái sang, không đè topbar/bottombar) -->
-  <div class="settings-overlay" id="settingsOverlay" aria-hidden="true"></div>
-  <aside class="settings-drawer" id="settingsDrawer" aria-label="Cài đặt" aria-hidden="true">
-    <div class="settings-drawer-header">
-      <h6 class="settings-drawer-title">Cài đặt</h6>
-      <button class="icon-btn" id="closeSettingsBtn" type="button" title="Đóng" aria-label="Close settings">
-        <span aria-hidden="true">×</span>
-      </button>
-    </div>
-    <div class="settings-drawer-body">
-      <div class="mb-3">
-        <label class="form-label">Thời gian đếm ngược mặc định:</label>
-        <div class="row g-2">
-          <div class="col-6">
-            <label for="defaultMinutesInput" class="form-label">Phút:</label>
-            <input type="number" class="form-control" id="defaultMinutesInput" min="0" max="59" inputmode="numeric">
-          </div>
-          <div class="col-6">
-            <label for="defaultSecondsInput" class="form-label">Giây:</label>
-            <input type="number" class="form-control" id="defaultSecondsInput" min="0" max="59" inputmode="numeric">
-          </div>
-        </div>
-        <div class="form-text" id="defaultTimeDisplay" style="color: rgba(255,255,255,0.70); font-weight: 800; margin-top: 6px;"></div>
-      </div>
-
-      <div class="mb-3">
-        <label for="xStepMinutesInput" class="form-label">Bước tăng/giảm cho nút -1x/+1x (phút):</label>
-        <input type="number" class="form-control" id="xStepMinutesInput" min="1" max="180" inputmode="numeric">
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Chỉnh sửa Menu Xe:</label>
-        <div class="d-flex gap-2 mb-2">
-          <button class="btn btn-primary btn-sm" id="openCarMenuEditorBtn" type="button">Mở Editor</button>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Màu nhóm khi gộp xe (Chọn Xe → Gộp):</label>
-        <div class="d-flex gap-2 flex-wrap">
-          <button class="btn btn-outline-info btn-sm" id="openMergeColorPaletteBtn" type="button">Chỉnh màu nhóm xe</button>
-        </div>
-        <div class="form-text" style="color: rgba(255,255,255,0.65); font-weight: 600; margin-top: 6px;">
-          Thứ tự trong danh sách = thứ tự màu lần lượt mỗi lần gộp; lưu trên Firebase.
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Thứ tự dòng trong danh sách:</label>
-        <button class="btn btn-outline-warning btn-sm" id="openRowMoveModeBtn" type="button">Di chuyển</button>
-        <div class="form-text" style="color: rgba(255,255,255,0.60); font-weight: 600; margin-top: 6px;">
-          Ấn giữ dòng rồi kéo lên/xuống; có thể chọn nhiều dòng rồi kéo cả khối. Thả vào vùng đỏ phía trên thanh dưới để hủy lần kéo.
-        </div>
-      </div>
-    </div>
-    <div class="settings-drawer-footer">
-      <button class="btn btn-outline-light btn-sm" id="cancelSettingsBtn" type="button">Hủy</button>
-      <button class="btn btn-primary btn-sm" id="saveSettingsBtn" type="button">Lưu</button>
-    </div>
-  </aside>
-
-  <main class="container" style="padding-top: 12px; padding-bottom: 12px;">
-    <div class="d-flex justify-content-between align-items-center mb-3" style="gap:12px;">
-      <h3 class="mb-0" style="color: rgba(255,255,255,0.92); font-weight: 900;">Danh sách xe cho thuê</h3>
-    </div>
-
-    <div class="table-responsive car-list-desktop" style="border: 1px solid rgba(255,255,255,0.10); border-radius: 14px; overflow: hidden;">
-      <table class="table table-dark table-striped mb-0" id="car-list" style="--bs-table-bg: rgba(0,0,0,0.55); --bs-table-striped-bg: rgba(255,255,255,0.03); --bs-table-border-color: rgba(255,255,255,0.10);">
-        <thead>
-          <tr>
-            <th style="width:60px;">#</th>
-            <th style="min-width:110px;">in4</th>
-            <th style="min-width:110px;">Mã xe</th>
-            <th style="min-width:170px;">Time</th>
-            <th style="min-width:120px;">Còn lại</th>
-            <th style="min-width:140px;">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- List of cars will be inserted here -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Mobile list (cards) -->
-    <div class="car-list-mobile" id="carListMobile" aria-label="Danh sách xe (mobile)"></div>
-    <div class="list-bottom-spacer" aria-hidden="true"></div>
-  </main>
-
-  <div class="move-drag-cancel-zone" id="moveDragCancelZone" aria-hidden="true">
-    <span class="move-drag-cancel-icon" aria-hidden="true">×</span>
-    <span class="move-drag-cancel-lbl">Thả để hủy</span>
   </div>
 
-  <div class="multi-select-action-bar" id="multiSelectActionBar" aria-label="Thao tác nhiều dòng">
-    <span class="text-white-50 small fw-bold me-1" id="multiSelectCountLabel" style="font-size:0.72rem;">0</span>
-    <button type="button" class="btn btn-outline-info btn-sm ms-default-btn" id="msBtnTime" title="Chỉnh thời gian">
-      <span class="lbl-full">Thời gian</span><span class="lbl-short">Time</span>
-    </button>
-    <button type="button" class="btn btn-outline-secondary btn-sm ms-default-btn" id="msBtnNote" title="Ghi chú">
-      <span class="lbl-full">Ghi chú</span><span class="lbl-short">Note</span>
-    </button>
-    <button type="button" class="btn btn-outline-danger btn-sm ms-default-btn" id="msBtnDelete" title="Xóa">
-      <span class="lbl-full">Xóa đã chọn</span><span class="lbl-short">Xóa</span>
-    </button>
-    <button type="button" class="btn btn-success btn-sm ms-default-btn" id="msBtnGroup" title="Gộp xe">
-      <span class="lbl-full">Gộp xe</span><span class="lbl-short">Gộp</span>
-    </button>
-    <button type="button" class="btn btn-warning btn-sm ms-default-btn" id="msBtnUngroup" title="Tách nhóm">
-      <span class="lbl-full">Tách nhóm</span><span class="lbl-short">Tách</span>
-    </button>
-    <button type="button" class="btn btn-outline-danger btn-sm ms-time-mode-btn" data-msq-delta="-5">-5p</button>
-    <button type="button" class="btn btn-outline-warning btn-sm ms-time-mode-btn" data-msq-delta="-1">-1p</button>
-    <button type="button" class="btn btn-outline-success btn-sm ms-time-mode-btn" data-msq-delta="1">+1p</button>
-    <button type="button" class="btn btn-outline-success btn-sm ms-time-mode-btn" data-msq-delta="5">+5p</button>
-    <button type="button" class="btn btn-outline-danger btn-sm ms-time-mode-btn" data-msq-delta="xneg">-1x</button>
-    <button type="button" class="btn btn-outline-success btn-sm ms-time-mode-btn" data-msq-delta="xpos">+1x</button>
-    <button type="button" class="btn btn-outline-light btn-sm ms-time-mode-btn" data-msq-delta="null">∞</button>
-    <button type="button" class="btn btn-outline-secondary btn-sm ms-time-mode-btn" id="msTimeModeBackBtn" title="Quay lại">
-      <span class="lbl-full">Xong</span><span class="lbl-short">Xong</span>
-    </button>
-  </div>
-
-  <div class="row-time-quick-pad" id="rowTimeQuickPad" aria-label="Chỉnh thời gian dòng">
-    <div class="rtqp-row top">
-      <button type="button" class="btn btn-outline-danger btn-sm" data-rsq-delta="-5">-5p</button>
-      <button type="button" class="btn btn-outline-warning btn-sm" data-rsq-delta="-1">-1p</button>
-      <button type="button" class="btn btn-outline-success btn-sm" data-rsq-delta="1">+1p</button>
-      <button type="button" class="btn btn-outline-success btn-sm" data-rsq-delta="5">+5p</button>
+  <!-- Bottom bar with floating design -->
+  <div id="bottomBar">
+    <div class="d-flex align-items-center" style="flex:1; gap:8px;">
+      <button class="btn btn-secondary btn-sm" id="settingsBtn">Cài đặt</button>
     </div>
-    <div class="rtqp-row bottom">
-      <button type="button" class="btn btn-outline-danger btn-sm" data-rsq-delta="xneg">-1x</button>
-      <button type="button" class="btn btn-outline-success btn-sm" data-rsq-delta="xpos">+1x</button>
-      <button type="button" class="btn btn-outline-light btn-sm" data-rsq-delta="null">∞</button>
-    </div>
-  </div>
-
-  <div class="modal fade" id="changeCarCodeModal" tabindex="-1" aria-labelledby="changeCarCodeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content bg-dark text-white border-secondary">
-        <div class="modal-header border-secondary py-2">
-          <h5 class="modal-title" id="changeCarCodeModalLabel">Đổi xe</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body pt-2">
-          <div class="small fw-bold text-info mb-2" id="changeCarCurrentLabel"></div>
-          <div class="car-menu-tabs mb-2" id="changeCarTabs"></div>
-          <div class="car-menu-body" style="max-height:52vh; overflow:auto;">
-            <div id="changeCarSelectionContainer"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <footer class="bottom-bar" role="contentinfo" aria-label="Bottom bar">
-    <span aria-hidden="true"></span>
-    <div class="bottom-bar-center">
-      <button class="btn btn-primary btn-sm" id="openCarMenuBtn" type="button">
+    <div class="d-flex justify-content-center align-items-center" style="flex:1;">
+      <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#selectMultipleModal">
         <i class="fas fa-car"></i> Chọn Xe
       </button>
     </div>
-    <button type="button" class="bottom-bar-exit-multi" id="exitRowMultiSelectBtn" title="Thoát chọn nhiều" aria-label="Thoát chọn nhiều">×</button>
-  </footer>
+    <div class="d-flex justify-content-end align-items-center" style="flex:1; gap:8px;">
+      <button class="btn btn-info btn-sm" id="activateMultiSelectBtn">Select</button>
+    </div>
+  </div>
 
-  <!-- Panel menu chọn xe (không đè topbar/bottombar) -->
-  <section class="car-menu-panel" id="carMenuPanel" aria-label="Menu chọn xe" aria-hidden="true">
-    <div class="car-menu-sheet" id="carMenuSheet">
-      <div class="car-menu-header">
-        <button class="icon-btn" id="carMenuMinimizeBtn" type="button" title="Ẩn tạm" aria-label="Minimize menu">
-          <span aria-hidden="true">−</span>
-        </button>
-        <button class="icon-btn" id="carMenuCloseBtn" type="button" title="Đóng" aria-label="Close menu">
-          <span aria-hidden="true">×</span>
-        </button>
+  <!-- Virtual spacer to prevent content from being hidden behind floating bottom bar -->
+  <div id="bottomSpacer"></div>
+
+  <!-- Floating selection action bar -->
+  <div id="selectionBar" class="shadow-sm" style="display:none; position:fixed; left:0; right:0; bottom:0; z-index:10000; background: rgba(255,255,255,0.97); backdrop-filter: blur(8px); border-top: 1px solid rgba(0,0,0,0.08); padding: 8px 12px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); height: 60px;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <span>Đã chọn: <b id="selectionCount">0</b> dòng</span>
       </div>
-
-      <div class="car-menu-tabs" id="carMenuTabs"></div>
-
-      <div class="car-menu-body">
-        <div id="multipleCarSelectionContainer"></div>
-      </div>
-
-      <div class="car-menu-actions">
-        <button class="btn btn-success" id="multiSelectGroupBtn" onclick="window.multipleCarSelection && window.multipleCarSelection.addSelectedCarsAsGroup()" disabled>
-          <i class="fas fa-layer-group"></i>
-          <span class="action-label-full">Gộp thành nhóm</span>
-          <span class="action-label-short">Gộp</span>
-        </button>
-        <button class="btn btn-primary" id="multiSelectAddBtn" onclick="window.multipleCarSelection && window.multipleCarSelection.addSelectedCarsIndividually()" disabled>
-          <i class="fas fa-plus"></i>
-          <span class="action-label-full">Thêm riêng lẻ</span>
-          <span class="action-label-short">Thêm</span>
-        </button>
+      <div class="d-flex gap-2 flex-wrap">
+        <!-- Mobile: chỉ hiển thị các nút cần thiết nhất -->
+        <div class="d-flex d-md-none gap-1">
+          <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+            <i class="fas fa-times"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-primary" onclick="selectAllRows()">
+            <i class="fas fa-check-double"></i>
+          </button>
+          <button class="btn btn-sm btn-danger" id="selectionDeleteBtn" onclick="deleteSelectedRows()" disabled>
+            <i class="fas fa-trash"></i>
+          </button>
+          <!-- Dropdown menu cho các tính năng khác -->
+          <div class="dropdown">
+            <button class="btn btn-sm btn-info dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><button class="dropdown-item" id="selectionGroupBtn" onclick="groupSelectedCars()" disabled>
+                <i class="fas fa-layer-group"></i> Gộp xe
+              </button></li>
+              <li><button class="dropdown-item" id="selectionUngroupBtn" onclick="ungroupSelectedCars()" disabled>
+                <i class="fas fa-layer-group"></i> Tách nhóm
+              </button></li>
+              <li><button class="dropdown-item" id="selectionTimeBtn" onclick="editTimeForSelectedCars()" disabled>
+                <i class="fas fa-clock"></i> Chỉnh thời gian
+              </button></li>
+              <li><button class="dropdown-item" id="selectionNoteBtn" onclick="editNoteForSelectedCars()" disabled>
+                <i class="fas fa-sticky-note"></i> Ghi chú
+              </button></li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Desktop: hiển thị tất cả nút -->
+        <div class="d-none d-md-flex gap-2 flex-wrap">
+          <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+            <i class="fas fa-times"></i> Bỏ chọn
+          </button>
+          <button class="btn btn-sm btn-outline-primary" onclick="selectAllRows()">
+            <i class="fas fa-check-double"></i> Chọn tất cả
+          </button>
+          <button class="btn btn-sm btn-success" id="selectionGroupBtnDesktop" onclick="groupSelectedCars()" disabled>
+            <i class="fas fa-layer-group"></i> Gộp xe
+          </button>
+          <button class="btn btn-sm btn-warning" id="selectionUngroupBtnDesktop" onclick="ungroupSelectedCars()" disabled>
+            <i class="fas fa-layer-group"></i> Tách nhóm
+          </button>
+          <button class="btn btn-sm btn-info" id="selectionTimeBtnDesktop" onclick="editTimeForSelectedCars()" disabled>
+            <i class="fas fa-clock"></i> Chỉnh thời gian
+          </button>
+          <button class="btn btn-sm btn-secondary" id="selectionNoteBtnDesktop" onclick="editNoteForSelectedCars()" disabled>
+            <i class="fas fa-sticky-note"></i> Ghi chú
+          </button>
+          <button class="btn btn-sm btn-danger" id="selectionDeleteBtnDesktop" onclick="deleteSelectedRows()" disabled>
+            <i class="fas fa-trash"></i> Xóa đã chọn
+          </button>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
 
+  <!-- Modal -->
+<div class="modal fade" id="carModal" tabindex="-1" aria-labelledby="carModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="carModalLabel">Chọn Xe</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A1')">A1</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A12')">A12</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A13')">A13</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A14')">A14</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A15')">A15</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A16')">A16</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A17')">A17</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A18')">A18</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A19')">A19</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('A20')">A20</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('AB')">AB</button>
+          </div>
+          <div class="mb-2">
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('C1')">C1</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('C2')">C2</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('C3')">C3</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('C4')">C4</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('CC')">CC</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('CX')">CX</button>
+          </div>
+          <div class="mb-2">
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('M1')">M1</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('M2')">M2</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('M3')">M3</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('D3')">D3</button>
+          </div>
+          <div class="mb-2">
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('XĐ')">XĐ</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('XT')">XT</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('XV')">XV</button>
+          </div>
+          <div class="mb-2">
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('S1')">S1</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('S2')">S2</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('S3')">S3</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('S4')">S4</button>
+          </div>
+          <div class="mb-2">
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('03')">03</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('06')">06</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('09')">09</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('10')">10</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('25')">25</button>
+          </div>
+          <div class="mb-2">
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('ĐM')">ĐM</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('ĐC')">ĐC</button>
+            <button class="btn btn-secondary m-1" onclick="selectCarCode('VH')">VH</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal xác nhận xóa tất cả -->
+  <div class="modal fade" id="confirmDeleteAllModal" tabindex="-1" aria-labelledby="confirmDeleteAllLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmDeleteAllLabel">Xác nhận xóa tất cả</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Bạn chắc chắn muốn xóa toàn bộ danh sách xe? <br>Hãy ấn nút xác nhận 5 lần để thực hiện!</p>
+          <button class="btn btn-danger" id="confirmDeleteAllBtn">Xác nhận (<span id="confirmDeleteAllCount">0</span>/5)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal chọn thời gian cho từng xe -->
+  <div class="modal fade" id="timeModal" tabindex="-1" aria-labelledby="timeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="timeModalLabel">Chỉnh thời gian xe</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <div class="mb-2">
+            <button class="btn btn-danger m-1" id="minus5Btn">-5 min</button>
+            <button class="btn btn-warning m-1" id="minus1Btn">-1 min</button>
+            <button class="btn btn-success m-1" id="plus1Btn">+1 min</button>
+            <button class="btn btn-success m-1" id="plus5Btn">+5 min</button>
+          </div>
+          <div class="mb-2">
+            <button class="btn btn-outline-danger m-1" id="minusXBtn">-1x</button>
+            <button class="btn btn-outline-success m-1" id="plusXBtn">+1x</button>
+          </div>
+          <div>
+            <button class="btn btn-secondary m-1" id="nullTimeBtn">Đi nhiêu tính nhiêu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal cài đặt -->
+  <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="settingsModalLabel">Cài đặt</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="defaultTimeInput" class="form-label">Thời gian đếm ngược mặc định:</label>
+            <div class="row">
+              <div class="col-6">
+                <label for="defaultMinutesInput" class="form-label">Phút:</label>
+                <input type="number" class="form-control" id="defaultMinutesInput" min="0" max="59" value="15">
+              </div>
+              <div class="col-6">
+                <label for="defaultSecondsInput" class="form-label">Giây:</label>
+                <input type="number" class="form-control" id="defaultSecondsInput" min="0" max="59" value="0">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="xStepMinutesInput" class="form-label">Bước tăng/giảm cho nút -1x/+1x (phút):</label>
+            <input type="number" class="form-control" id="xStepMinutesInput" min="1" max="180" value="15">
+          </div>
+
+          
+          <div class="mb-3">
+            <label class="form-label">Chỉnh sửa Menu Xe:</label>
+            <div class="d-flex gap-2 mb-2">
+              <button class="btn btn-primary" id="openCarMenuEditorBtn">Mở Editor</button>
+              <button class="btn btn-warning" id="resetCarMenuBtn">Reset về mặc định</button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Chức năng nhanh:</label>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <a href="spin.html" class="btn btn-outline-primary btn-sm" target="_blank">Vòng quay (Spin)</a>
+              <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#spinSettingsModal">Cài đặt xác suất</button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <!-- Removed redundant 'Chọn nhiều dòng' button in settings -->
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-warning" id="backBtn" title="Quay lại (Ctrl+Z)">← Back</button>
+          <button type="button" class="btn btn-info" id="exportCarsBtn">Xuất danh sách xe</button>
+          <button type="button" class="btn btn-warning" id="enableNotifyBtn">Bật thông báo</button>
+          <button type="button" class="btn btn-danger" id="deleteAllBtn">Xóa tất cả</button>
+          <button type="button" class="btn btn-danger" id="logoutBtn">Đăng xuất</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-primary" id="saveSettingsBtn">Lưu cài đặt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cài đặt xác suất (iframe trang spin) -->
+  <div class="modal fade" id="spinSettingsModal" tabindex="-1" aria-labelledby="spinSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width: 90%; max-height: 90vh;">
+      <div class="modal-content" style="max-height: 90vh;">
+        <div class="modal-header py-2">
+          <h5 class="modal-title" id="spinSettingsModalLabel">Cài đặt xác suất vòng quay</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0" style="height: 70vh; overflow: hidden;">
+          <iframe id="spinSettingsFrame" src="about:blank" style="width:100%; height:100%; border:0;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function() {
+      var modal = document.getElementById('spinSettingsModal');
+      if (modal) {
+        modal.addEventListener('show.bs.modal', function() {
+          document.getElementById('spinSettingsFrame').src = 'spin.html?open=settings';
+        });
+        modal.addEventListener('hidden.bs.modal', function() {
+          document.getElementById('spinSettingsFrame').src = 'about:blank';
+        });
+      }
+    })();
+  </script>
+
+  <!-- Modal thao tác dòng -->
+  <div class="modal fade" id="rowActionModal" tabindex="-1" aria-labelledby="rowActionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="rowActionModalLabel">Chọn thao tác</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <button class="btn btn-secondary m-2" id="rowMoveUpBtn"><i class="fas fa-arrow-up"></i> Lên</button>
+          <button class="btn btn-secondary m-2" id="rowMoveDownBtn"><i class="fas fa-arrow-down"></i> Xuống</button>
+          <button class="btn btn-info m-2" id="rowActionTimeBtn">Time</button>
+          <button class="btn btn-danger m-2" id="rowActionDeleteBtn">Xóa</button>
+          <button class="btn btn-secondary m-2" id="rowActionNoteBtn">Ghi chú</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal chỉnh sửa menu xe -->
   <div class="modal fade" id="carMenuEditorModal" tabindex="-1" aria-labelledby="carMenuEditorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
@@ -1728,78 +603,87 @@
     </div>
   </div>
 
-  <!-- Giống index.html — chỉnh time / ghi chú hàng loạt (dùng window.__indexNewUi) -->
+  <!-- Modal chọn nhiều xe -->
+  <div class="modal fade" id="selectMultipleModal" tabindex="-1" aria-labelledby="selectMultipleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="selectMultipleModalLabel">Chọn Nhiều Xe</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="multipleCarSelectionContainer">
+            <!-- Nội dung chọn xe sẽ được render ở đây -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- Buttons removed - using inline grouping options instead -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal chỉnh thời gian nhiều xe -->
   <div class="modal fade" id="multiTimeModal" tabindex="-1" aria-labelledby="multiTimeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content bg-dark text-white border-secondary">
-        <div class="modal-header border-secondary">
+      <div class="modal-content">
+        <div class="modal-header">
           <h5 class="modal-title" id="multiTimeModalLabel">Chỉnh thời gian nhiều xe</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body text-center">
           <p class="mb-3">Đã chọn <span id="multiTimeCount">0</span> xe</p>
           <div class="mb-2">
-            <button type="button" class="btn btn-danger m-1" data-ms-delta="-5">-5 min</button>
-            <button type="button" class="btn btn-warning m-1" data-ms-delta="-1">-1 min</button>
-            <button type="button" class="btn btn-success m-1" data-ms-delta="1">+1 min</button>
-            <button type="button" class="btn btn-success m-1" data-ms-delta="5">+5 min</button>
+            <button class="btn btn-danger m-1" onclick="changeMultiTime(-5)">-5 min</button>
+            <button class="btn btn-warning m-1" onclick="changeMultiTime(-1)">-1 min</button>
+            <button class="btn btn-success m-1" onclick="changeMultiTime(1)">+1 min</button>
+            <button class="btn btn-success m-1" onclick="changeMultiTime(5)">+5 min</button>
           </div>
           <div class="mb-2">
-            <button type="button" class="btn btn-outline-danger m-1" data-ms-delta="xneg">-1x</button>
-            <button type="button" class="btn btn-outline-success m-1" data-ms-delta="xpos">+1x</button>
+            <button class="btn btn-outline-danger m-1" onclick="changeMultiTime(-xStepMinutes)">-1x</button>
+            <button class="btn btn-outline-success m-1" onclick="changeMultiTime(xStepMinutes)">+1x</button>
           </div>
           <div>
-            <button type="button" class="btn btn-secondary m-1" id="multiTimeNullBtn">Đi nhiêu tính nhiêu</button>
+            <button class="btn btn-secondary m-1" onclick="setMultiTimeNull()">Đi nhiêu tính nhiêu</button>
           </div>
         </div>
-        <div class="modal-footer border-secondary">
+        <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Modal ghi chú nhiều xe -->
   <div class="modal fade" id="multiNoteModal" tabindex="-1" aria-labelledby="multiNoteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content bg-dark text-white border-secondary">
-        <div class="modal-header border-secondary">
+      <div class="modal-content">
+        <div class="modal-header">
           <h5 class="modal-title" id="multiNoteModalLabel">Ghi chú nhiều xe</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <p class="mb-3">Đã chọn <span id="multiNoteCount">0</span> xe</p>
           <div class="mb-3">
             <label for="multiNoteInput" class="form-label">Ghi chú:</label>
-            <textarea class="form-control bg-dark text-white border-secondary" id="multiNoteInput" rows="3" placeholder="Nhập ghi chú..."></textarea>
+            <textarea class="form-control" id="multiNoteInput" rows="3" placeholder="Nhập ghi chú cho tất cả xe đã chọn..."></textarea>
           </div>
         </div>
-        <div class="modal-footer border-secondary">
+        <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="button" class="btn btn-primary" id="multiNoteApplyBtn">Áp dụng</button>
+          <button type="button" class="btn btn-primary" onclick="applyMultiNote()">Áp dụng</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="modal fade" id="mergeColorPaletteModal" tabindex="-1" aria-labelledby="mergeColorPaletteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content bg-dark text-white border-secondary">
-        <div class="modal-header border-secondary">
-          <h5 class="modal-title" id="mergeColorPaletteModalLabel">Chỉnh màu nhóm xe (gộp từ Chọn Xe)</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
+    <div id="overdueToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="overdueToastBody">
+          Có xe vừa hết thời gian!
         </div>
-        <div class="modal-body">
-          <p class="small text-white-50 mb-3">
-            Mỗi lần bấm <strong>Gộp thành nhóm</strong> hệ thống lấy màu theo thứ tự từ trên xuống rồi quay vòng.
-            Chỉnh thứ tự / thêm / xóa màu rồi bấm <strong>Lưu lên Firebase</strong>.
-          </p>
-          <div id="mergeColorList" class="merge-color-list"></div>
-          <button type="button" class="btn btn-outline-light btn-sm mt-2" id="mergeColorAddBtn">+ Thêm màu</button>
-        </div>
-        <div class="modal-footer border-secondary">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-          <button type="button" class="btn btn-primary" id="mergeColorSaveBtn">Lưu lên Firebase</button>
-        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
     </div>
   </div>
@@ -1808,7 +692,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script>
-    // Firebase config (giống index.html) để lấy menu màu/tên từ database.
     const firebaseConfig = {
       apiKey: "AIzaSyAj8MNZXEN1tQaOqZ4jGxGhX04IWAW437s",
       authDomain: "xehtml.firebaseapp.com",
@@ -1822,2761 +705,9 @@
     firebase.initializeApp(firebaseConfig);
     window.db = firebase.database();
   </script>
-
-  <script>
-    // Đồng bộ carList từ Firebase để:
-    // - addCar() ghi xe vào DB (để index.html thấy ngay)
-    // - getActiveOutCarCodes() dùng để disable/đánh dấu xe đang thuê
-    (function () {
-      var carListCache = [];
-      var activeOutSet = new Set();
-      window.__carListCache = carListCache;
-
-      function normalizeCar(raw) {
-        if (!raw || typeof raw !== 'object') return null;
-        if (!raw.carCode) return null;
-        raw.paid = raw.paid === true || raw.paid === 'true' || raw.paid === 1 || raw.paid === '1';
-        raw.done = raw.done === true || raw.done === 'true' || raw.done === 1 || raw.done === '1';
-        raw.isNullTime =
-          raw.isNullTime === true ||
-          raw.isNullTime === 'true' ||
-          raw.isNullTime === 1 ||
-          raw.isNullTime === '1';
-        if (typeof raw.pausedAt === 'string' && raw.pausedAt !== '') {
-          raw.pausedAt = Number(raw.pausedAt);
-        }
-        if (typeof raw.nullStartTime === 'string' && raw.nullStartTime !== '') {
-          raw.nullStartTime = Number(raw.nullStartTime);
-        }
-        return raw;
-      }
-
-      function toFirebaseCar(car) {
-        if (!car || typeof car !== 'object') return null;
-        var obj = {};
-        Object.keys(car).forEach(function (k) {
-          if (car[k] === undefined) return;
-          obj[k] = car[k];
-        });
-        obj.paid = !!obj.paid;
-        obj.done = !!obj.done;
-        obj.isNullTime = !!obj.isNullTime;
-        function toIso(v) {
-          if (v == null) return v;
-          if (typeof v === 'string') return v;
-          if (v instanceof Date) return v.toISOString();
-          var d = new Date(v);
-          return Number.isNaN(d.getTime()) ? String(v) : d.toISOString();
-        }
-        obj.timeOut = toIso(car.timeOut);
-        obj.timeIn = toIso(car.timeIn);
-        if (typeof car.groupId === 'undefined' || car.groupId === null || car.groupId === '') {
-          delete obj.groupId;
-        }
-        if (typeof car.groupColor === 'undefined' || car.groupColor === null || car.groupColor === '') {
-          delete obj.groupColor;
-        }
-        if (typeof car.pausedAt === 'number') {
-          obj.pausedAt = car.pausedAt;
-        } else {
-          delete obj.pausedAt;
-        }
-        if (typeof car.nullStartTime === 'number') {
-          obj.nullStartTime = car.nullStartTime;
-        } else {
-          delete obj.nullStartTime;
-        }
-        return obj;
-      }
-
-      window.saveCarListToFirebase = function (list) {
-        if (!window.db) return;
-        var data = (Array.isArray(list) ? list : [])
-          .map(toFirebaseCar)
-          .filter(Boolean);
-        window.db.ref('carList').set(data);
-      };
-
-      function rebuildActiveOutSet() {
-        activeOutSet = new Set();
-        carListCache.forEach(function (car) {
-          if (car && !car.done && !car.isNullTime) {
-            activeOutSet.add(car.carCode);
-          }
-        });
-      }
-
-      function ensureCarIds(list) {
-        if (!Array.isArray(list)) return false;
-        var max = 0;
-        var changed = false;
-        list.forEach(function (c) {
-          var n = Number(c && c.id);
-          if (!Number.isNaN(n) && n > max) max = n;
-        });
-        list.forEach(function (c) {
-          var n = Number(c && c.id);
-          if (c && (c.id == null || c.id === '' || Number.isNaN(n))) {
-            max += 1;
-            c.id = max;
-            changed = true;
-          } else if (c) {
-            c.id = n;
-          }
-        });
-        return changed;
-      }
-
-      function listenCarList() {
-        if (!window.db) return;
-        window.db.ref('carList').on('value', function (snapshot) {
-          var data = snapshot.val();
-          if (Array.isArray(data)) {
-            carListCache = data.map(normalizeCar).filter(Boolean);
-            if (ensureCarIds(carListCache) && window.saveCarListToFirebase) {
-              window.saveCarListToFirebase(carListCache);
-            }
-          } else {
-            carListCache = [];
-          }
-          rebuildActiveOutSet();
-          window.__carListCache = carListCache;
-          try {
-            window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carListCache } }));
-          } catch (_) {}
-        });
-      }
-
-      function getNextId() {
-        var maxId = 0;
-        carListCache.forEach(function (car) {
-          var id = Number(car.id);
-          if (!Number.isNaN(id) && id > maxId) maxId = id;
-        });
-        return maxId + 1;
-      }
-
-      function getDefaults() {
-        var minutes = Number(localStorage.getItem('defaultTimeMinutes'));
-        var seconds = Number(localStorage.getItem('defaultTimeSeconds'));
-        if (Number.isNaN(minutes)) minutes = 15;
-        if (Number.isNaN(seconds)) seconds = 30;
-        return { minutes: minutes, seconds: seconds };
-      }
-
-      async function addCarsBatch(carCodes, groupMeta) {
-        if (!window.db) return;
-        var codes = Array.isArray(carCodes) ? carCodes : [carCodes];
-        codes = codes
-          .map(function (c) { return String(c || '').trim(); })
-          .filter(function (c) { return !!c; });
-        if (codes.length === 0) return;
-
-        var defaults = getDefaults();
-
-        // Transaction để tránh overwrite khi nhiều client ghi cùng lúc
-        await window.db.ref('carList').transaction(function (current) {
-          var list = Array.isArray(current) ? current.filter(Boolean) : [];
-
-          var maxId = 0;
-          list.forEach(function (car) {
-            var id = Number(car && car.id);
-            if (!Number.isNaN(id) && id > maxId) maxId = id;
-          });
-
-          codes.forEach(function (carCode) {
-            var now = new Date();
-            var timeOut = new Date(now.getTime());
-            var timeIn = new Date(now.getTime());
-            timeIn.setMinutes(timeIn.getMinutes() + defaults.minutes);
-            timeIn.setSeconds(timeIn.getSeconds() + defaults.seconds);
-
-            maxId += 1;
-            var car = {
-              id: maxId,
-              carCode: String(carCode),
-              timeOut: timeOut.toISOString(),
-              timeIn: timeIn.toISOString(),
-              paid: false,
-              done: false,
-              timeChanged: "",
-            };
-            if (groupMeta && groupMeta.groupId) car.groupId = groupMeta.groupId;
-            if (groupMeta && groupMeta.groupColor) car.groupColor = groupMeta.groupColor;
-            list.push(car);
-          });
-
-          return list;
-        });
-      }
-
-      async function addCar(carCode, groupMeta) {
-        return addCarsBatch([carCode], groupMeta);
-      }
-
-      window.addCarsBatch = addCarsBatch;
-      window.addCar = addCar;
-      window.getActiveOutCarCodes = function () {
-        return new Set(activeOutSet);
-      };
-
-      listenCarList();
-    })();
-  </script>
-  <script>
-    (function () {
-      var MERGE_DEFAULT_COLORS = [
-        '#1e88e5',
-        '#8e24aa',
-        '#f4511e',
-        '#3949ab',
-        '#c2185b',
-        '#2e7d32',
-        '#d32f2f',
-        '#f57c00',
-        '#5d4037',
-        '#455a64'
-      ];
-
-      function normalizeMergeState(val) {
-        if (!val) return { colors: MERGE_DEFAULT_COLORS.slice(), nextIndex: 0 };
-        if (Array.isArray(val)) {
-          var a = val
-            .map(function (x) {
-              return String(x || '').trim();
-            })
-            .filter(function (h) {
-              return /^#([0-9a-fA-F]{6})$/.test(h);
-            });
-          return { colors: a.length ? a : MERGE_DEFAULT_COLORS.slice(), nextIndex: 0 };
-        }
-        var colors = Array.isArray(val.colors)
-          ? val.colors
-              .map(function (x) {
-                return String(x || '').trim();
-              })
-              .filter(function (h) {
-                return /^#([0-9a-fA-F]{6})$/.test(h);
-              })
-          : [];
-        if (!colors.length) colors = MERGE_DEFAULT_COLORS.slice();
-        var ni = Number(val.nextIndex);
-        if (Number.isNaN(ni) || ni < 0) ni = 0;
-        return { colors: colors, nextIndex: ni % colors.length };
-      }
-
-      window.__mergeColorPaletteState = normalizeMergeState(null);
-
-      window.pickNextMergeGroupColorFromDb = async function () {
-        if (!window.db) return MERGE_DEFAULT_COLORS[0];
-        var ref = window.db.ref('groupMergeColorPalette');
-        var picked = MERGE_DEFAULT_COLORS[0];
-        try {
-          await ref.transaction(function (current) {
-            var s = normalizeMergeState(current);
-            picked = s.colors[s.nextIndex % s.colors.length];
-            return {
-              colors: s.colors,
-              nextIndex: (s.nextIndex + 1) % s.colors.length
-            };
-          });
-        } catch (e) {
-          console.warn('pickNextMergeGroupColorFromDb', e);
-        }
-        return picked;
-      };
-
-      if (window.db) {
-        window.db.ref('groupMergeColorPalette').on('value', function (snap) {
-          window.__mergeColorPaletteState = normalizeMergeState(snap.val());
-        });
-      }
-    })();
-  </script>
+  <script src="script.js"></script>
   <script src="car-menu-editor.js"></script>
   <script src="multiple-car-selection.js"></script>
-
-  <script>
-    (function () {
-      var openBtn = document.getElementById('openSettingsBtn');
-      var closeBtn = document.getElementById('closeSettingsBtn');
-      var cancelBtn = document.getElementById('cancelSettingsBtn');
-      var saveBtn = document.getElementById('saveSettingsBtn');
-      var overlay = document.getElementById('settingsOverlay');
-      var drawer = document.getElementById('settingsDrawer');
-      var minutesInput = document.getElementById('defaultMinutesInput');
-      var secondsInput = document.getElementById('defaultSecondsInput');
-      var xStepInput = document.getElementById('xStepMinutesInput');
-      var display = document.getElementById('defaultTimeDisplay');
-      var openCarMenuEditorBtn = document.getElementById('openCarMenuEditorBtn');
-      var applyCarMenuChangesBtn = document.getElementById('applyCarMenuChangesBtn');
-
-      if (!drawer || !overlay) return;
-
-      function clampInt(val, min, max, fallback) {
-        var n = Number(val);
-        if (Number.isNaN(n)) n = Number(fallback);
-        if (Number.isNaN(n)) n = min;
-        n = Math.floor(n);
-        if (n < min) n = min;
-        if (n > max) n = max;
-        return n;
-      }
-
-      function pad2(n) {
-        return String(n).padStart(2, '0');
-      }
-
-      function readSettings() {
-        var m = clampInt(localStorage.getItem('defaultTimeMinutes'), 0, 59, 15);
-        var s = clampInt(localStorage.getItem('defaultTimeSeconds'), 0, 59, 30);
-        var x = clampInt(localStorage.getItem('xStepMinutes'), 1, 180, 15);
-        return { minutes: m, seconds: s, xStepMinutes: x };
-      }
-
-      function writeSettings(next) {
-        localStorage.setItem('defaultTimeMinutes', String(next.minutes));
-        localStorage.setItem('defaultTimeSeconds', String(next.seconds));
-        localStorage.setItem('xStepMinutes', String(next.xStepMinutes));
-      }
-
-      function updateDisplay() {
-        if (!display || !minutesInput || !secondsInput) return;
-        var m = clampInt(minutesInput.value, 0, 59, 15);
-        var s = clampInt(secondsInput.value, 0, 59, 30);
-        display.textContent = 'Đang chọn: ' + pad2(m) + ':' + pad2(s);
-      }
-
-      function setFormValues(settings) {
-        if (minutesInput) minutesInput.value = String(settings.minutes);
-        if (secondsInput) secondsInput.value = String(settings.seconds);
-        if (xStepInput) xStepInput.value = String(settings.xStepMinutes);
-        updateDisplay();
-      }
-
-      function openDrawer() {
-        setFormValues(readSettings());
-        overlay.classList.add('open');
-        drawer.classList.add('open');
-        drawer.setAttribute('aria-hidden', 'false');
-        overlay.setAttribute('aria-hidden', 'false');
-        try {
-          if (minutesInput) minutesInput.focus();
-        } catch (_) {}
-      }
-
-      function closeDrawer() {
-        overlay.classList.remove('open');
-        drawer.classList.remove('open');
-        drawer.setAttribute('aria-hidden', 'true');
-        overlay.setAttribute('aria-hidden', 'true');
-      }
-
-      function save() {
-        var next = {
-          minutes: clampInt(minutesInput && minutesInput.value, 0, 59, 15),
-          seconds: clampInt(secondsInput && secondsInput.value, 0, 59, 30),
-          xStepMinutes: clampInt(xStepInput && xStepInput.value, 1, 180, 15)
-        };
-        writeSettings(next);
-        closeDrawer();
-      }
-
-      if (openBtn) openBtn.addEventListener('click', openDrawer);
-      if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
-      if (cancelBtn) cancelBtn.addEventListener('click', closeDrawer);
-      overlay.addEventListener('click', closeDrawer);
-
-      if (saveBtn) saveBtn.addEventListener('click', save);
-      if (minutesInput) minutesInput.addEventListener('input', updateDisplay);
-      if (secondsInput) secondsInput.addEventListener('input', updateDisplay);
-
-      if (openCarMenuEditorBtn) {
-        openCarMenuEditorBtn.addEventListener('click', function () {
-          if (!window.carMenuEditor || !window.bootstrap) return;
-          closeDrawer();
-          window.carMenuEditor.renderEditor();
-          var editorModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('carMenuEditorModal'));
-          editorModal.show();
-        });
-      }
-
-      if (applyCarMenuChangesBtn) {
-        applyCarMenuChangesBtn.addEventListener('click', function () {
-          if (!window.carMenuEditor || !window.bootstrap) return;
-          window.carMenuEditor.updateMainMenu();
-          var editorModal = bootstrap.Modal.getInstance(document.getElementById('carMenuEditorModal'));
-          if (editorModal) editorModal.hide();
-        });
-      }
-
-      var openRowMoveModeBtn = document.getElementById('openRowMoveModeBtn');
-      if (openRowMoveModeBtn) {
-        openRowMoveModeBtn.addEventListener('click', function () {
-          closeDrawer();
-          if (typeof window.__enterRowMoveMode === 'function') window.__enterRowMoveMode();
-        });
-      }
-
-      var openMergePaletteBtn = document.getElementById('openMergeColorPaletteBtn');
-      var mergeModalEl = document.getElementById('mergeColorPaletteModal');
-      var mergeColorListEl = document.getElementById('mergeColorList');
-      var mergeColorAddBtn = document.getElementById('mergeColorAddBtn');
-      var mergeColorSaveBtn = document.getElementById('mergeColorSaveBtn');
-
-      function mergeHexValid(h) {
-        return /^#([0-9a-fA-F]{6})$/.test(String(h || '').trim());
-      }
-
-      function mergeRowHtml(hex) {
-        var safe = mergeHexValid(hex) ? String(hex).trim().toLowerCase() : '#1e88e5';
-        return (
-          '<div class="merge-color-row" data-merge-row>' +
-          '<input type="color" class="form-control form-control-color merge-color-picker" value="' +
-          safe +
-          '" aria-label="Chọn màu" />' +
-          '<input type="text" class="form-control form-control-sm bg-dark text-white border-secondary merge-color-hex" style="max-width:120px" value="' +
-          safe +
-          '" maxlength="7" spellcheck="false" />' +
-          '<button type="button" class="btn btn-outline-light btn-sm merge-up" title="Lên">↑</button>' +
-          '<button type="button" class="btn btn-outline-light btn-sm merge-down" title="Xuống">↓</button>' +
-          '<button type="button" class="btn btn-outline-danger btn-sm merge-del" title="Xóa">×</button>' +
-          '</div>'
-        );
-      }
-
-      function wireMergeColorRow(row) {
-        if (!row) return;
-        var pick = row.querySelector('.merge-color-picker');
-        var hex = row.querySelector('.merge-color-hex');
-        if (pick && hex) {
-          pick.addEventListener('input', function () {
-            hex.value = pick.value;
-          });
-          hex.addEventListener('input', function () {
-            var v = String(hex.value || '').trim();
-            if (mergeHexValid(v)) pick.value = v.toLowerCase();
-          });
-        }
-        var up = row.querySelector('.merge-up');
-        var dn = row.querySelector('.merge-down');
-        var del = row.querySelector('.merge-del');
-        if (up)
-          up.addEventListener('click', function () {
-            var p = row.previousElementSibling;
-            if (p && p.hasAttribute('data-merge-row')) row.parentNode.insertBefore(row, p);
-          });
-        if (dn)
-          dn.addEventListener('click', function () {
-            var n = row.nextElementSibling;
-            if (n && n.hasAttribute('data-merge-row')) row.parentNode.insertBefore(n, row);
-          });
-        if (del)
-          del.addEventListener('click', function () {
-            if (mergeColorListEl && mergeColorListEl.querySelectorAll('[data-merge-row]').length > 1) row.remove();
-          });
-      }
-
-      function renderMergeColorEditor() {
-        if (!mergeColorListEl) return;
-        var st = window.__mergeColorPaletteState || { colors: [], nextIndex: 0 };
-        var cols = Array.isArray(st.colors) && st.colors.length ? st.colors.slice() : ['#1e88e5', '#8e24aa', '#3949ab'];
-        mergeColorListEl.innerHTML = cols.map(mergeRowHtml).join('');
-        mergeColorListEl.querySelectorAll('[data-merge-row]').forEach(wireMergeColorRow);
-      }
-
-      function readMergeColorsFromDom() {
-        if (!mergeColorListEl) return [];
-        var out = [];
-        mergeColorListEl.querySelectorAll('[data-merge-row]').forEach(function (row) {
-          var hex = row.querySelector('.merge-color-hex');
-          var pick = row.querySelector('.merge-color-picker');
-          var v = hex && mergeHexValid(hex.value) ? hex.value.trim().toLowerCase() : pick ? pick.value : '';
-          if (mergeHexValid(v)) out.push(v);
-        });
-        return out;
-      }
-
-      if (openMergePaletteBtn && mergeModalEl && mergeColorListEl && window.bootstrap) {
-        openMergePaletteBtn.addEventListener('click', function () {
-          closeDrawer();
-          renderMergeColorEditor();
-          bootstrap.Modal.getOrCreateInstance(mergeModalEl).show();
-        });
-      }
-
-      if (mergeColorAddBtn && mergeColorListEl) {
-        mergeColorAddBtn.addEventListener('click', function () {
-          var tmp = document.createElement('div');
-          tmp.innerHTML = mergeRowHtml('#66bb6a');
-          var row = tmp.firstElementChild;
-          mergeColorListEl.appendChild(row);
-          wireMergeColorRow(row);
-        });
-      }
-
-      if (mergeColorSaveBtn && mergeModalEl && window.db && window.bootstrap) {
-        mergeColorSaveBtn.addEventListener('click', function () {
-          var colors = readMergeColorsFromDom();
-          if (!colors.length) {
-            alert('Cần ít nhất một màu hợp lệ (#rrggbb).');
-            return;
-          }
-          var st = window.__mergeColorPaletteState || { nextIndex: 0 };
-          var ni = Number(st.nextIndex);
-          if (Number.isNaN(ni) || ni < 0) ni = 0;
-          ni = ni % colors.length;
-          mergeColorSaveBtn.disabled = true;
-          window.db
-            .ref('groupMergeColorPalette')
-            .set({ colors: colors, nextIndex: ni })
-            .then(function () {
-              var m = bootstrap.Modal.getInstance(mergeModalEl);
-              if (m) m.hide();
-            })
-            .catch(function (err) {
-              console.error(err);
-              alert('Không lưu được: ' + (err && err.message ? err.message : String(err)));
-            })
-            .finally(function () {
-              mergeColorSaveBtn.disabled = false;
-            });
-        });
-      }
-
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-          if (drawer.classList.contains('open')) closeDrawer();
-        }
-      });
-    })();
-  </script>
-
-  <script>
-    (function () {
-      function pad2(n) {
-        return String(n).padStart(2, '0');
-      }
-
-      function fmtTime(d) {
-        if (!(d instanceof Date) || Number.isNaN(d.getTime())) return '--:--';
-        return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
-      }
-
-      function parseDateMaybe(v) {
-        if (!v) return null;
-        if (v instanceof Date) return v;
-        const d = new Date(v);
-        return Number.isNaN(d.getTime()) ? null : d;
-      }
-
-      function getRemainingMs(timeIn, car) {
-        if (car && car.isNullTime) return null;
-        // Pause countdown when done (match index.html behavior)
-        if (car && car.done && car.pausedAt !== undefined && car.pausedAt !== null) {
-          const v = Number(car.pausedAt);
-          if (!Number.isFinite(v) || v <= 0) return 0;
-          return v;
-        }
-        const d = parseDateMaybe(timeIn);
-        if (!d) return null;
-        return d.getTime() - Date.now();
-      }
-
-      /** Giống script.js getRemainingTimeInMillis — dùng cho nhận diện overdue/trùng */
-      function getRemainingTimeInMillis(timeIn, car) {
-        if (car && car.isNullTime) return 0;
-        if (car && car.done && car.pausedAt !== undefined && car.pausedAt !== null) {
-          const v = Number(car.pausedAt);
-          return Number.isFinite(v) ? v : 0;
-        }
-        const d = parseDateMaybe(timeIn);
-        if (!d) return 0;
-        return d.getTime() - Date.now();
-      }
-
-      function buildCountByCode(carList) {
-        const countByCode = {};
-        (Array.isArray(carList) ? carList : []).forEach(function (car) {
-          if (!car || car.done) return;
-          const code = car.carCode;
-          if (!code) return;
-          countByCode[code] = (countByCode[code] || 0) + 1;
-        });
-        return countByCode;
-      }
-
-      /** Màu ghi chú: xanh lá / đỏ (hoặc tông tương phản) theo nền trạng thái dòng */
-      function getNoteVisualTone(car, countByCode) {
-        if (!car) return 'car-note-line--tone-default';
-        if (car.isNullTime) return 'car-note-line--tone-null';
-        if (car.done) return 'car-note-line--tone-on-done';
-        const isOverdue = getRemainingTimeInMillis(car.timeIn, car) <= 0;
-        const isDup = !!(car.carCode && (countByCode[car.carCode] || 0) >= 2);
-        if (isOverdue && isDup) return 'car-note-line--tone-on-dup-over';
-        if (isOverdue) return 'car-note-line--tone-on-overdue';
-        if (isDup) return 'car-note-line--tone-on-dup';
-        return 'car-note-line--tone-default';
-      }
-
-      function applyCarRowStateLikeIndex(rowEl, car, countByCode) {
-        if (!rowEl || !car) return;
-        rowEl.classList.remove('done', 'overdue', 'null-time-done', 'duplicate-done', 'duplicate-overdue');
-        if (car.isNullTime) {
-          rowEl.classList.add('null-time-done');
-        } else if (car.done) {
-          rowEl.classList.add('done');
-        } else {
-          const isOverdue = getRemainingTimeInMillis(car.timeIn, car) <= 0;
-          const isDuplicate = !!car.carCode && (countByCode[car.carCode] || 0) >= 2;
-          if (isOverdue && isDuplicate) {
-            rowEl.classList.add('duplicate-overdue');
-          } else if (isOverdue) {
-            rowEl.classList.add('overdue');
-          } else if (isDuplicate) {
-            rowEl.classList.add('duplicate-done');
-          }
-        }
-      }
-
-      function applyDuplicateOverdueUi(carList) {
-        const list = Array.isArray(carList) ? carList : [];
-        const countByCode = buildCountByCode(list);
-        const table = document.getElementById('car-list');
-        const tbody = table && table.getElementsByTagName('tbody')[0];
-        if (tbody) {
-          tbody.querySelectorAll('tr.car-data-row').forEach(function (row) {
-            const i = Number(row.getAttribute('data-car-index'));
-            if (Number.isNaN(i) || i < 0 || !list[i]) return;
-            applyCarRowStateLikeIndex(row, list[i], countByCode);
-          });
-        }
-        document.querySelectorAll('.car-note-line[data-car-index]').forEach(function (line) {
-          const idx = Number(line.getAttribute('data-car-index'));
-          if (Number.isNaN(idx) || idx < 0 || !list[idx]) return;
-          line.className = 'car-note-line ' + getNoteVisualTone(list[idx], countByCode);
-        });
-        document.querySelectorAll('.car-list-mobile .swipe-row[data-row]').forEach(function (rowEl) {
-          const idx = Number(rowEl.getAttribute('data-row'));
-          if (Number.isNaN(idx) || idx < 0 || !list[idx]) return;
-          applyCarRowStateLikeIndex(rowEl, list[idx], countByCode);
-        });
-      }
-
-      // --- Cảnh báo xe hết thời gian (port từ index.html/script.js) ---
-      let overdueNotifiedIds = new Set();
-      let overdueCarCodes = new Set(); // Gom mã xe hết giờ!
-      /** Sau khi bấm tắt toast: không tự mở lại cho tới hết snooze (ms timestamp) */
-      let overdueToastSnoozeUntil = 0;
-
-      function syncOverdueToastWithCurrentState() {
-        const carList = window.__carListCache || [];
-        overdueCarCodes.clear();
-        for (const car of carList) {
-          const remMs = getRemainingMs(car && car.timeIn, car);
-          if (car && !car.isNullTime && !car.done && remMs != null && remMs <= 0) {
-            overdueCarCodes.add(car.carCode);
-          }
-        }
-        updateOverdueToast();
-      }
-
-      function updateOverdueToast() {
-        let toastEl = document.getElementById('overdueToastMass');
-        if (!toastEl) {
-          toastEl = document.createElement('div');
-          toastEl.id = 'overdueToastMass';
-          toastEl.className = 'toast align-items-center text-white bg-danger border-0 show';
-          toastEl.role = 'alert';
-          toastEl.ariaLive = 'assertive';
-          toastEl.ariaAtomic = 'true';
-          toastEl.style.position = 'fixed';
-          toastEl.style.top = '20px';
-          toastEl.style.right = '20px';
-          toastEl.style.zIndex = '99999';
-          toastEl.style.maxWidth = 'min(420px, calc(100vw - 24px))';
-          toastEl.innerHTML = `
-            <div class="d-flex">
-              <div class="toast-body" id="overdueToastMassBody"></div>
-              <button type="button" class="btn-close btn-close-white me-2 m-auto" id="overdueToastMassClose" aria-label="Close"></button>
-            </div>
-          `;
-          document.body.appendChild(toastEl);
-          toastEl.querySelector('#overdueToastMassClose').onclick = function () {
-            toastEl.classList.remove('show');
-            overdueToastSnoozeUntil = Date.now() + 5000;
-          };
-        }
-
-        const body = document.getElementById('overdueToastMassBody');
-        if (!body) return;
-
-        const codesHtml =
-          '<div class="overdue-toast-inner">' +
-          '<span class="overdue-toast-icon" role="img" aria-label="Hết giờ">⏱</span>' +
-          '<div class="overdue-toast-codes">' +
-          Array.from(overdueCarCodes)
-            .map(function (code) {
-              return `<span class="badge bg-light text-danger">${escapeHtml(code)}</span>`;
-            })
-            .join('') +
-          '</div></div>';
-
-        if (overdueCarCodes.size === 0) {
-          toastEl.classList.remove('show');
-          overdueToastSnoozeUntil = 0;
-          body.innerHTML = '';
-          return;
-        }
-
-        body.innerHTML = codesHtml;
-
-        if (Date.now() < overdueToastSnoozeUntil) {
-          toastEl.classList.remove('show');
-          return;
-        }
-
-        toastEl.classList.add('show');
-      }
-
-      function notifyOverdue(car) {
-        overdueCarCodes.add(car.carCode);
-        updateOverdueToast();
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const oscillator = ctx.createOscillator();
-          oscillator.type = 'sine';
-          oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-          oscillator.connect(ctx.destination);
-          oscillator.start();
-          oscillator.stop(ctx.currentTime + 0.3);
-          oscillator.onended = () => ctx.close();
-        } catch (e) {}
-        if (navigator.vibrate) {
-          navigator.vibrate([200, 100, 200]);
-        }
-        if ('Notification' in window && Notification.permission === 'granted') {
-          try {
-            const codes = Array.from(overdueCarCodes).join(', ');
-            new Notification('⏱', {
-              body: codes || 'Hết giờ',
-              icon: '',
-            });
-          } catch (e) {}
-        }
-      }
-
-      function removeCarFromOverdueToast(carCode) {
-        if (overdueCarCodes.has(carCode)) {
-          overdueCarCodes.delete(carCode);
-          updateOverdueToast();
-        }
-      }
-
-      function formatRemaining(ms) {
-        if (ms == null) return '00:00';
-        if (ms <= 0) return '00:00';
-        const s = Math.floor(ms / 1000);
-        const hh = Math.floor(s / 3600);
-        const mm = Math.floor((s % 3600) / 60);
-        const ss = s % 60;
-        if (hh > 0) return `${hh}:${pad2(mm)}:${pad2(ss)}`;
-        return `${pad2(mm)}:${pad2(ss)}`;
-      }
-
-      function escapeHtml(s) {
-        return String(s == null ? '' : s)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
-      }
-
-      /** Chọn nhiều dòng (kéo phải như ZArchiver / Mail; logic gộp-tách-time-note bám script.js) */
-      var rowMultiSelectState = { active: false, anchorIndex: null, selectedIds: new Set() };
-      var suppressDesktopRowClick = false;
-
-      function exitRowMoveMode() {
-        document.body.classList.remove('row-move-mode-active');
-        document.body.classList.remove('row-move-dragging');
-      }
-
-      function enterRowMoveMode() {
-        document.body.classList.add('row-move-mode-active');
-        rowMultiSelectState.active = false;
-        rowMultiSelectState.anchorIndex = null;
-        rowMultiSelectState.selectedIds.clear();
-        document.body.classList.remove('row-multi-select-active');
-        var tbl0 = document.getElementById('car-list');
-        if (tbl0) tbl0.classList.remove('select-mode');
-        updateMultiSelectChrome();
-        syncRowMultiSelectClasses(window.__carListCache || []);
-      }
-
-      window.__enterRowMoveMode = enterRowMoveMode;
-
-      function readXStepMinutes() {
-        var x = Number(localStorage.getItem('xStepMinutes'));
-        if (Number.isNaN(x) || x < 1) x = 15;
-        return x;
-      }
-
-      function updateMultiSelectChrome() {
-        var bar = document.getElementById('multiSelectActionBar');
-        var lbl = document.getElementById('multiSelectCountLabel');
-        var n = rowMultiSelectState.selectedIds.size;
-        if (lbl) lbl.textContent = String(n);
-        if (!bar) return;
-        var c = n;
-        var g = document.getElementById('msBtnGroup');
-        var u = document.getElementById('msBtnUngroup');
-        var d = document.getElementById('msBtnDelete');
-        var t = document.getElementById('msBtnTime');
-        var note = document.getElementById('msBtnNote');
-        if (d) d.disabled = c === 0;
-        if (t) t.disabled = c === 0;
-        if (note) note.disabled = c === 0;
-        if (g) g.disabled = c < 2;
-        if (u) {
-          var list = window.__carListCache || [];
-          var hasG = false;
-          rowMultiSelectState.selectedIds.forEach(function (id) {
-            var car = list.find(function (x) { return x && x.id === id; });
-            if (car && car.groupId) hasG = true;
-          });
-          u.disabled = !hasG;
-        }
-        if (!rowMultiSelectState.active || n === 0) setMultiTimeMode(false);
-      }
-
-      function exitRowMultiSelect() {
-        exitRowMoveMode();
-        rowMultiSelectState.active = false;
-        rowMultiSelectState.anchorIndex = null;
-        rowMultiSelectState.selectedIds.clear();
-        document.body.classList.remove('row-multi-select-active');
-        var tbl = document.getElementById('car-list');
-        if (tbl) tbl.classList.remove('select-mode');
-        updateMultiSelectChrome();
-        try {
-          window.dispatchEvent(
-            new CustomEvent('carListUpdated', { detail: { carList: window.__carListCache || [] } })
-          );
-        } catch (_) {}
-      }
-
-      function syncRowMultiSelectClasses(list) {
-        var L = Array.isArray(list) ? list : [];
-        document.querySelectorAll('#car-list tbody tr.car-data-row').forEach(function (tr) {
-          var i = Number(tr.getAttribute('data-car-index'));
-          var car = L[i];
-          var on = !!(rowMultiSelectState.active && car && rowMultiSelectState.selectedIds.has(car.id));
-          tr.classList.toggle('row-multi-selected', on);
-        });
-        document.querySelectorAll('#carListMobile .swipe-row[data-row]').forEach(function (rowEl) {
-          var i = Number(rowEl.getAttribute('data-row'));
-          var car = L[i];
-          var on = !!(rowMultiSelectState.active && car && rowMultiSelectState.selectedIds.has(car.id));
-          rowEl.classList.toggle('row-multi-selected', on);
-          var sc = rowEl.querySelector('.swipe-content');
-          if (sc) sc.classList.toggle('rainbow-select-target', on);
-        });
-      }
-
-      function toggleRowMultiByCarId(carId) {
-        if (!rowMultiSelectState.active) return;
-        if (rowMultiSelectState.selectedIds.has(carId)) {
-          rowMultiSelectState.selectedIds.delete(carId);
-        } else {
-          rowMultiSelectState.selectedIds.add(carId);
-        }
-        updateMultiSelectChrome();
-        syncRowMultiSelectClasses(window.__carListCache || []);
-      }
-
-      function onRightSwipeRowSelect(rowIndex) {
-        var list = window.__carListCache || [];
-        var car = list[rowIndex];
-        if (!car || car.id == null) return;
-        if (!rowMultiSelectState.active) {
-          rowMultiSelectState.active = true;
-          document.body.classList.add('row-multi-select-active');
-          var tbl = document.getElementById('car-list');
-          if (tbl) tbl.classList.add('select-mode');
-        }
-        if (rowMultiSelectState.anchorIndex == null) {
-          rowMultiSelectState.anchorIndex = rowIndex;
-          rowMultiSelectState.selectedIds.add(car.id);
-        } else {
-          var a = rowMultiSelectState.anchorIndex;
-          var lo = Math.min(a, rowIndex);
-          var hi = Math.max(a, rowIndex);
-          for (var i = lo; i <= hi; i++) {
-            if (list[i] && list[i].id != null) rowMultiSelectState.selectedIds.add(list[i].id);
-          }
-          rowMultiSelectState.anchorIndex = rowIndex;
-        }
-        updateMultiSelectChrome();
-        syncRowMultiSelectClasses(list);
-      }
-
-      async function groupSelectedCarsNew() {
-        if (rowMultiSelectState.selectedIds.size < 2) return;
-        var carList = (window.__carListCache || []).slice();
-        var selectedCars = carList.filter(function (c) {
-          return c && rowMultiSelectState.selectedIds.has(c.id);
-        });
-        var carsWithGroup = selectedCars.filter(function (c) {
-          return c.groupId;
-        });
-        var uniqueGroups = new Set();
-        carsWithGroup.forEach(function (c) {
-          if (c.groupId) uniqueGroups.add(c.groupId);
-        });
-        var targetGroupId = null;
-        var targetGroupColor = null;
-        if (uniqueGroups.size > 1) {
-          var groupNames = Array.from(uniqueGroups)
-            .map(function (gid) {
-              var groupCars = carsWithGroup.filter(function (car) {
-                return car.groupId === gid;
-              });
-              return 'Nhóm ' + gid + ' (' + groupCars.length + ' xe)';
-            })
-            .join(', ');
-          if (!confirm('Các xe đã chọn thuộc ' + uniqueGroups.size + ' nhóm khác nhau:\n' + groupNames + '\n\nGộp tất cả vào nhóm đầu tiên?')) {
-            return;
-          }
-          var firstGroupId = Array.from(uniqueGroups)[0];
-          var firstGroupCar = carsWithGroup.find(function (car) {
-            return car.groupId === firstGroupId;
-          });
-          targetGroupId = firstGroupCar.groupId;
-          targetGroupColor = firstGroupCar.groupColor;
-        } else if (uniqueGroups.size === 1) {
-          targetGroupId = carsWithGroup[0].groupId;
-          targetGroupColor = carsWithGroup[0].groupColor;
-        } else {
-          targetGroupId = Date.now();
-          targetGroupColor =
-            typeof window.pickNextMergeGroupColorFromDb === 'function'
-              ? await window.pickNextMergeGroupColorFromDb()
-              : '#1e88e5';
-        }
-        selectedCars.forEach(function (car) {
-          car.groupId = targetGroupId;
-          car.groupColor = targetGroupColor;
-        });
-        window.__carListCache = carList;
-        if (window.saveCarListToFirebase) window.saveCarListToFirebase(carList);
-        try {
-          window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carList } }));
-        } catch (_) {}
-      }
-
-      function ungroupSelectedCarsNew() {
-        if (rowMultiSelectState.selectedIds.size === 0) return;
-        var carList = (window.__carListCache || []).slice();
-        var selectedCars = carList.filter(function (c) {
-          return c && rowMultiSelectState.selectedIds.has(c.id);
-        });
-        if (!selectedCars.some(function (c) { return c.groupId; })) return;
-        selectedCars.forEach(function (car) {
-          car.groupId = null;
-          car.groupColor = null;
-        });
-        window.__carListCache = carList;
-        if (window.saveCarListToFirebase) window.saveCarListToFirebase(carList);
-        try {
-          window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carList } }));
-        } catch (_) {}
-      }
-
-      function changeMultiTimeNew(deltaMinutes) {
-        if (rowMultiSelectState.selectedIds.size === 0) return;
-        var carList = (window.__carListCache || []).slice();
-        var changed = 0;
-        rowMultiSelectState.selectedIds.forEach(function (id) {
-          var car = carList.find(function (c) {
-            return c && c.id === id;
-          });
-          if (!car) return;
-          if (car.isNullTime) car.isNullTime = false;
-          var newTimeIn = parseDateMaybe(car.timeIn);
-          var timeOutD = parseDateMaybe(car.timeOut);
-          if (!newTimeIn || !timeOutD) return;
-          newTimeIn.setMinutes(newTimeIn.getMinutes() + deltaMinutes);
-          if (newTimeIn.getTime() >= timeOutD.getTime()) {
-            car.timeIn = newTimeIn.toISOString();
-            changed++;
-          }
-        });
-        if (changed > 0) {
-          window.__carListCache = carList;
-          if (window.saveCarListToFirebase) window.saveCarListToFirebase(carList);
-          try {
-            window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carList } }));
-          } catch (_) {}
-        }
-      }
-
-      function setMultiTimeNullNew() {
-        if (rowMultiSelectState.selectedIds.size === 0) return;
-        var carList = (window.__carListCache || []).slice();
-        rowMultiSelectState.selectedIds.forEach(function (id) {
-          var car = carList.find(function (c) {
-            return c && c.id === id;
-          });
-          if (car) car.isNullTime = true;
-        });
-        window.__carListCache = carList;
-        if (window.saveCarListToFirebase) window.saveCarListToFirebase(carList);
-        try {
-          window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carList } }));
-        } catch (_) {}
-      }
-
-      var rowTimeQuickState = { visible: false, rowIndex: null };
-      var multiTimeMode = false;
-      var changeCarState = { rowIndex: null, activeTabId: 'all' };
-
-      function setMultiTimeMode(on) {
-        var bar = document.getElementById('multiSelectActionBar');
-        multiTimeMode = !!on;
-        if (bar) bar.classList.toggle('time-mode', multiTimeMode);
-      }
-
-      function hideRowTimeQuickPad() {
-        var pad = document.getElementById('rowTimeQuickPad');
-        if (!pad) return;
-        pad.classList.remove('show');
-        rowTimeQuickState.visible = false;
-        rowTimeQuickState.rowIndex = null;
-      }
-
-      function showRowTimeQuickPad(rowEl, rowIndex) {
-        var pad = document.getElementById('rowTimeQuickPad');
-        if (!pad || !rowEl) return;
-        var r = rowEl.getBoundingClientRect();
-        var vw = window.innerWidth || document.documentElement.clientWidth || 360;
-        var vh = window.innerHeight || document.documentElement.clientHeight || 640;
-
-        pad.classList.add('show');
-        var pr = pad.getBoundingClientRect();
-        var showAbove = r.bottom > vh - 160;
-        var top = showAbove ? r.top - pr.height - 6 : r.bottom + 6;
-        var left = r.left + Math.max(0, (r.width - pr.width) / 2);
-        left = Math.max(8, Math.min(left, vw - pr.width - 8));
-        top = Math.max(8, Math.min(top, vh - pr.height - 8));
-
-        pad.style.left = left + 'px';
-        pad.style.top = top + 'px';
-        rowTimeQuickState.visible = true;
-        rowTimeQuickState.rowIndex = rowIndex;
-      }
-
-      function applySingleRowTimeDelta(index, deltaMinutes) {
-        var current = (window.__carListCache || []).slice();
-        if (!current[index]) return;
-        if (current[index].isNullTime) current[index].isNullTime = false;
-        var timeInD = parseDateMaybe(current[index].timeIn) || new Date();
-        var timeOutD = parseDateMaybe(current[index].timeOut);
-        timeInD.setMinutes(timeInD.getMinutes() + deltaMinutes);
-        if (timeOutD && timeInD.getTime() < timeOutD.getTime()) return;
-        current[index].timeIn = timeInD.toISOString();
-        window.__carListCache = current;
-        try {
-          window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: current } }));
-        } catch (_) {}
-        if (window.saveCarListToFirebase) window.saveCarListToFirebase(current);
-      }
-
-      function setSingleRowTimeNull(index) {
-        var current = (window.__carListCache || []).slice();
-        if (!current[index]) return;
-        current[index].isNullTime = true;
-        window.__carListCache = current;
-        try {
-          window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: current } }));
-        } catch (_) {}
-        if (window.saveCarListToFirebase) window.saveCarListToFirebase(current);
-      }
-
-      function applyMultiNoteNew() {
-        var ta = document.getElementById('multiNoteInput');
-        if (!ta) return;
-        var note = String(ta.value || '').trim();
-        if (rowMultiSelectState.selectedIds.size === 0) return;
-        var carList = (window.__carListCache || []).slice();
-        rowMultiSelectState.selectedIds.forEach(function (id) {
-          var car = carList.find(function (c) {
-            return c && c.id === id;
-          });
-          if (car) car.note = note;
-        });
-        window.__carListCache = carList;
-        if (window.saveCarListToFirebase) window.saveCarListToFirebase(carList);
-        try {
-          window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carList } }));
-        } catch (_) {}
-        var modal = document.getElementById('multiNoteModal');
-        if (modal && window.bootstrap) {
-          var m = bootstrap.Modal.getInstance(modal);
-          if (m) m.hide();
-        }
-      }
-
-      function deleteSelectedRowsNew() {
-        if (rowMultiSelectState.selectedIds.size === 0) return;
-        if (!confirm('Xóa ' + rowMultiSelectState.selectedIds.size + ' dòng đã chọn?')) return;
-        var carList = (window.__carListCache || []).filter(function (c) {
-          return c && !rowMultiSelectState.selectedIds.has(c.id);
-        });
-        rowMultiSelectState.active = false;
-        rowMultiSelectState.anchorIndex = null;
-        rowMultiSelectState.selectedIds.clear();
-        document.body.classList.remove('row-multi-select-active');
-        var tbl = document.getElementById('car-list');
-        if (tbl) tbl.classList.remove('select-mode');
-        updateMultiSelectChrome();
-        window.__carListCache = carList;
-        if (window.saveCarListToFirebase) window.saveCarListToFirebase(carList);
-        try {
-          window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carList } }));
-        } catch (_) {}
-      }
-
-      function getCarGroupsForChangeCar() {
-        if (window.carMenuEditor && Array.isArray(window.carMenuEditor.carGroups)) {
-          return window.carMenuEditor.carGroups;
-        }
-        try {
-          var raw = localStorage.getItem('carMenuConfig');
-          if (!raw) return [];
-          var parsed = JSON.parse(raw);
-          return Array.isArray(parsed) ? parsed : [];
-        } catch (_) {
-          return [];
-        }
-      }
-
-      function getAllChangeableCarCodes() {
-        var groups = getCarGroupsForChangeCar();
-        var seen = new Set();
-        var out = [];
-        groups.forEach(function (g) {
-          if (!g || !Array.isArray(g.cars)) return;
-          g.cars.forEach(function (code) {
-            var c = String(code || '').trim();
-            if (!c || seen.has(c)) return;
-            seen.add(c);
-            out.push(c);
-          });
-        });
-        return out;
-      }
-
-      function getNormalizedChangeCarGroups() {
-        var groups = getCarGroupsForChangeCar();
-        return groups.map(function (g, idx) {
-          var name =
-            g && typeof g.name === 'string' && g.name.trim() ? g.name.trim() : 'Nhóm ' + String(idx + 1);
-          var cars = g && Array.isArray(g.cars) ? g.cars : [];
-          var color = g && typeof g.color === 'string' ? g.color : '';
-          return { id: 'cg' + String(idx), name: name, cars: cars, color: color };
-        });
-      }
-
-      function setChangeCarTab(tabId) {
-        changeCarState.activeTabId = tabId || 'all';
-        renderChangeCarTabs();
-        renderChangeCarSelectionInterface();
-      }
-
-      function getContrastTextColorForBg(bg) {
-        var hex = String(bg || '').trim();
-        if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) return '#ffffff';
-        var h = hex.slice(1);
-        if (h.length === 3) h = h.split('').map(function (x) { return x + x; }).join('');
-        var r = parseInt(h.slice(0, 2), 16);
-        var g = parseInt(h.slice(2, 4), 16);
-        var b = parseInt(h.slice(4, 6), 16);
-        var yiq = (r * 299 + g * 587 + b * 114) / 1000;
-        return yiq >= 145 ? '#111111' : '#ffffff';
-      }
-
-      function renderChangeCarTabs() {
-        var tabsEl = document.getElementById('changeCarTabs');
-        if (!tabsEl) return;
-        var groups = getNormalizedChangeCarGroups();
-        var tabs = [{ id: 'all', label: 'All', color: '' }].concat(
-          groups.map(function (g) {
-            return { id: g.id, label: g.name, color: g.color || '' };
-          })
-        );
-        tabsEl.innerHTML = tabs
-          .map(function (t) {
-            var active = changeCarState.activeTabId === t.id;
-            var style = '';
-            if (t.color) {
-              style =
-                'style="background-color:' +
-                t.color +
-                ';color:' +
-                getContrastTextColorForBg(t.color) +
-                ';border-color:' +
-                t.color +
-                '"';
-            }
-            return (
-              '<button class="car-menu-tab' +
-              (active ? ' active' : '') +
-              '" type="button" data-change-car-tab="' +
-              escapeHtml(t.id) +
-              '" ' +
-              style +
-              '>' +
-              escapeHtml(t.label) +
-              '</button>'
-            );
-          })
-          .join('');
-      }
-
-      function renderChangeCarSelectionInterface() {
-        var host = document.getElementById('changeCarSelectionContainer');
-        if (!host) return;
-        var idx = changeCarState.rowIndex;
-        var list = window.__carListCache || [];
-        var car = idx == null ? null : list[idx];
-        var currentCode = car && car.carCode ? String(car.carCode) : '';
-        var groups = getNormalizedChangeCarGroups();
-        var allCars = [];
-        var seen = new Set();
-        groups.forEach(function (g) {
-          g.cars.forEach(function (code) {
-            var c = String(code || '').trim();
-            if (!c || seen.has(c)) return;
-            seen.add(c);
-            allCars.push({ code: c, color: g.color || '' });
-          });
-        });
-        if (!allCars.length) {
-          host.innerHTML =
-            '<div class="text-white-50 fw-bold px-1">Chưa có danh sách mã xe. Hãy mở Editor để thêm nhóm/mã xe.</div>';
-          return;
-        }
-        if (changeCarState.activeTabId === 'all') {
-          host.innerHTML = groups
-            .filter(function (g) {
-              return Array.isArray(g.cars) && g.cars.length > 0;
-            })
-            .map(function (g) {
-              var groupButtons = g.cars
-                .map(function (code) {
-                  var c = String(code || '').trim();
-                  if (!c) return '';
-                  var active = currentCode && currentCode === c;
-                  var style = '';
-                  if (g.color) {
-                    style =
-                      'style="background-color:' +
-                      g.color +
-                      ';border-color:' +
-                      g.color +
-                      ';color:' +
-                      getContrastTextColorForBg(g.color) +
-                      ';"';
-                  }
-                  return (
-                    '<button type="button" class="btn btn-sm ' +
-                    (active ? 'btn-primary' : 'btn-outline-light') +
-                    '" data-change-car-code="' +
-                    escapeHtml(c) +
-                    '" ' +
-                    style +
-                    '>' +
-                    escapeHtml(c) +
-                    '</button>'
-                  );
-                })
-                .join('');
-              return (
-                '<div class="mb-2 px-1">' +
-                '<div class="d-flex flex-wrap" style="gap:8px;">' +
-                groupButtons +
-                '</div>' +
-                '</div>'
-              );
-            })
-            .join('');
-          return;
-        }
-
-        var carsToRender = [];
-        {
-          var g0 = groups.find(function (g) {
-            return g.id === changeCarState.activeTabId;
-          });
-          carsToRender = (g0 && Array.isArray(g0.cars) ? g0.cars : []).map(function (code) {
-            return { code: String(code || '').trim(), color: g0 && g0.color ? g0.color : '' };
-          }).filter(function (x) { return !!x.code; });
-        }
-        host.innerHTML =
-          '<div class="d-flex flex-wrap" style="gap:8px;">' +
-          carsToRender
-            .map(function (item) {
-              var code = item.code;
-              var active = currentCode && currentCode === code;
-              var style = '';
-              if (item.color) {
-                style =
-                  'style="background-color:' +
-                  item.color +
-                  ';border-color:' +
-                  item.color +
-                  ';color:' +
-                  getContrastTextColorForBg(item.color) +
-                  ';"';
-              }
-            return (
-              '<button type="button" class="btn btn-sm ' +
-              (active ? 'btn-primary' : 'btn-outline-light') +
-              '" data-change-car-code="' +
-              escapeHtml(code) +
-              '" ' +
-              style +
-              '>' +
-              escapeHtml(code) +
-              '</button>'
-            );
-          })
-            .join('') +
-          '</div>';
-      }
-
-      function openChangeCarModal(index) {
-        var current = window.__carListCache || [];
-        if (!current[index]) return;
-        changeCarState.rowIndex = index;
-        changeCarState.activeTabId = 'all';
-        var lbl = document.getElementById('changeCarCurrentLabel');
-        if (lbl) {
-          lbl.textContent = 'Xe hiện tại: ' + (current[index].carCode || '');
-        }
-        renderChangeCarTabs();
-        renderChangeCarSelectionInterface();
-        var modalEl = document.getElementById('changeCarCodeModal');
-        if (modalEl && window.bootstrap) {
-          bootstrap.Modal.getOrCreateInstance(modalEl).show();
-        }
-      }
-
-      function applyChangeCarCode(newCode) {
-        var idx = changeCarState.rowIndex;
-        var current = (window.__carListCache || []).slice();
-        if (idx == null || !current[idx]) return;
-        var nextCode = String(newCode || '').trim();
-        if (!nextCode) return;
-        var oldCode = String(current[idx].carCode || '').trim();
-        if (oldCode === nextCode) return;
-        if (!Array.isArray(current[idx].oldCarCodes)) current[idx].oldCarCodes = [];
-        if (oldCode) current[idx].oldCarCodes.push(oldCode);
-        current[idx].carCode = nextCode;
-        window.__carListCache = current;
-        try {
-          window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: current } }));
-        } catch (_) {}
-        if (window.saveCarListToFirebase) window.saveCarListToFirebase(current);
-      }
-
-      function desktopRowClickMulti(e, car, row) {
-        if (suppressDesktopRowClick) return;
-        if (!rowMultiSelectState.active) return;
-        var t = e.target;
-        if (t && t.closest && (t.closest('button') || t.closest('a'))) return;
-        if (!car || car.id == null) return;
-        toggleRowMultiByCarId(car.id);
-      }
-
-      /**
-       * Xử lý nút trên dòng mobile (Time / Ghi chú / Xóa / C/R / Vào).
-       * Nút trong .swipe-actions dùng pointerdown capture trên #carListMobile để một lần chạm là đủ
-       * (tránh click bị nuốt bởi lớp swipe-content / logic document).
-       */
-      function handleMobileRowAction(rowEl, index, action) {
-        try {
-          const current = (window.__carListCache || []).slice();
-          if (!current[index]) return;
-
-          if (action === 'togglePaid') {
-            current[index].paid = !current[index].paid;
-            window.__carListCache = current;
-            try {
-              window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: current } }));
-            } catch (_) {}
-            if (window.saveCarListToFirebase) window.saveCarListToFirebase(current);
-            return;
-          }
-
-          if (action === 'toggleDone') {
-            const car0 = current[index];
-            if (car0.isNullTime) {
-              car0.isNullTime = false;
-              car0.done = false;
-              car0.nullStartTime = undefined;
-            } else if (!car0.done) {
-              car0.done = true;
-              const rem = getRemainingMs(car0.timeIn, car0);
-              car0.pausedAt = rem == null || rem <= 0 ? 0 : rem;
-              if (car0.carCode) removeCarFromOverdueToast(car0.carCode);
-            } else {
-              car0.done = false;
-              const p = Number(car0.pausedAt);
-              if (Number.isFinite(p) && p > 0) {
-                const now = new Date();
-                car0.timeIn = new Date(now.getTime() + p).toISOString();
-              }
-              car0.pausedAt = undefined;
-            }
-            window.__carListCache = current;
-            try {
-              window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: current } }));
-            } catch (_) {}
-            if (window.saveCarListToFirebase) window.saveCarListToFirebase(current);
-            return;
-          }
-
-          if (action === 'delete') {
-            if (!rowEl || rowEl.classList.contains('delete-shatter')) return;
-            rowEl.classList.add('delete-shatter');
-            var removeIndex = index;
-            var removed = false;
-
-            function commitRemove() {
-              if (removed) return;
-              removed = true;
-              try {
-                var cur = (window.__carListCache || []).slice();
-                if (!cur[removeIndex]) return;
-                cur.splice(removeIndex, 1);
-                window.__carListCache = cur;
-                try {
-                  window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: cur } }));
-                } catch (_) {}
-                if (window.saveCarListToFirebase) window.saveCarListToFirebase(cur);
-              } catch (_) {}
-            }
-
-            var t = window.setTimeout(commitRemove, 440);
-            rowEl.addEventListener(
-              'animationend',
-              function onEnd(ev) {
-                if (ev.target !== rowEl) return;
-                if (ev.animationName !== 'delete-shatter-core') return;
-                window.clearTimeout(t);
-                rowEl.removeEventListener('animationend', onEnd);
-                commitRemove();
-              },
-              false
-            );
-            return;
-          }
-
-          if (action === 'note') {
-            const next = prompt('Ghi chú cho xe ' + (current[index].carCode || '') + ':', current[index].note || '');
-            if (next === null) return;
-            current[index].note = String(next);
-            window.__carListCache = current;
-            try {
-              window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: current } }));
-            } catch (_) {}
-            if (window.saveCarListToFirebase) window.saveCarListToFirebase(current);
-            return;
-          }
-
-          if (action === 'time') {
-            showRowTimeQuickPad(rowEl, index);
-            return;
-          }
-
-          if (action === 'changeCar') {
-            openChangeCarModal(index);
-            return;
-          }
-        } catch (_) {}
-      }
-
-      (function attachSwipeActionsPointerCaptureOnce() {
-        var host = document.getElementById('carListMobile');
-        if (!host || host.dataset.swipeActionsPd === '1') return;
-        host.dataset.swipeActionsPd = '1';
-        host.addEventListener(
-          'pointerdown',
-          function (e) {
-            var btn = e.target && e.target.closest && e.target.closest('.swipe-actions button[data-action]');
-            if (!btn) return;
-            if (e.pointerType === 'mouse' && e.button !== 0) return;
-            var rowRef = btn.closest('.swipe-row');
-            if (!rowRef || rowRef.classList.contains('delete-shatter')) return;
-            if (!rowRef.classList.contains('open') && !rowRef.classList.contains('dragging')) return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            var idx = Number(rowRef.getAttribute('data-row'));
-            if (Number.isNaN(idx)) return;
-            var act = btn.getAttribute('data-action');
-            if (!act) return;
-            handleMobileRowAction(rowRef, idx, act);
-          },
-          true
-        );
-      })();
-
-      function renderCarList(list) {
-        const table = document.getElementById('car-list');
-        if (!table) return;
-        const tbody = table.getElementsByTagName('tbody')[0];
-        if (!tbody) return;
-        const mobileHost = document.getElementById('carListMobile');
-
-        const carList = Array.isArray(list) ? list : [];
-        const countByCode = buildCountByCode(carList);
-        if (rowMultiSelectState.active) table.classList.add('select-mode');
-        else table.classList.remove('select-mode');
-        tbody.innerHTML = '';
-        if (mobileHost) mobileHost.innerHTML = '';
-
-        carList.forEach(function (car, index) {
-          const row = tbody.insertRow();
-          row.classList.add('car-data-row');
-          row.setAttribute('data-car-index', String(index));
-          if (car && car.id != null) row.setAttribute('data-car-id', String(car.id));
-
-          const timeOut = parseDateMaybe(car.timeOut);
-          const timeIn = parseDateMaybe(car.timeIn);
-          const remMs = getRemainingMs(car.timeIn, car);
-
-          const cellIdx = row.insertCell();
-          cellIdx.textContent = String(index + 1);
-
-          const cellInfo = row.insertCell();
-          const isPaid = !!car.paid;
-          const statusHtml = `<button class="btn btn-status btn-sm ${isPaid ? 'btn-success' : 'btn-warning'}" type="button" data-action="togglePaid">${isPaid ? 'R' : 'C'}</button>`;
-          cellInfo.innerHTML = statusHtml;
-
-          const cellCode = row.insertCell();
-          let colorStyle = '';
-          if (car.groupColor) {
-            colorStyle = `color: ${car.groupColor};`;
-          }
-          const borderStyle = car.groupColor ? `border-color: ${car.groupColor};` : '';
-          const groupedClass = car.groupColor ? 'grouped' : 'no-border';
-          let carCodeHtml = `<button class="btn btn-sm car-code-btn ${groupedClass}" type="button" data-action="changeCar" style="${colorStyle}${borderStyle}">${car.carCode || ''}</button>`;
-          if (car.oldCarCodes && Array.isArray(car.oldCarCodes) && car.oldCarCodes.length > 0) {
-            carCodeHtml += ` <div class='old-car-code-italic'>(` + car.oldCarCodes.map(function (code) { return `${code}`; }).join(', ') + `)</div>`;
-          }
-          cellCode.innerHTML = carCodeHtml;
-
-          const cellTime = row.insertCell();
-          cellTime.innerHTML = `<div><span class="time-out" style="font-size:0.95em;"><b>${fmtTime(timeOut)}</b></span><br><span class="time-in" style="font-size:0.9em;"><b>${fmtTime(timeIn)}</b></span></div>`;
-
-          const cellRemain = row.insertCell();
-          const urgent = (remMs != null && remMs <= 2 * 60 * 1000 && remMs > 0);
-          cellRemain.innerHTML = `<span class="countdown${urgent ? ' urgent' : ''}" data-car-row="${index}">${formatRemaining(remMs)}</span>`;
-
-          const cellAction = row.insertCell();
-          cellAction.innerHTML = `
-            <div class="d-flex flex-wrap" style="gap:6px;">
-              <button class="btn btn-success btn-sm" type="button" data-action="toggleDone">${car.done ? 'Res' : 'Vào'}</button>
-              <button class="btn btn-secondary btn-sm" type="button" data-action="more">...</button>
-            </div>
-          `;
-
-          function handleActionClick(e) {
-            const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
-            if (!btn) return;
-            if (e && e.type === 'click' && btn.dataset.pdHandled === '1') {
-              delete btn.dataset.pdHandled;
-              return;
-            }
-            const action = btn.getAttribute('data-action');
-            if (!action) return;
-            // Minimal actions: update DB in-place by index (same shape as index.html uses array)
-            try {
-              const current = (window.__carListCache || []).slice();
-              if (!current[index]) return;
-              if (action === 'changeCar') {
-                openChangeCarModal(index);
-                return;
-              }
-              if (action === 'togglePaid') current[index].paid = !current[index].paid;
-              if (action === 'toggleDone') {
-                const car0 = current[index];
-                if (car0.isNullTime) {
-                  car0.isNullTime = false;
-                  car0.done = false;
-                  car0.nullStartTime = undefined;
-                } else if (!car0.done) {
-                  car0.done = true;
-                  const rem = getRemainingMs(car0.timeIn, car0);
-                  car0.pausedAt = (rem == null || rem <= 0) ? 0 : rem;
-                  if (car0.carCode) removeCarFromOverdueToast(car0.carCode);
-                } else {
-                  car0.done = false;
-                  const p = Number(car0.pausedAt);
-                  if (Number.isFinite(p) && p > 0) {
-                    const now = new Date();
-                    car0.timeIn = new Date(now.getTime() + p).toISOString();
-                  }
-                  car0.pausedAt = undefined;
-                }
-              }
-              if (action === 'more') return;
-
-              // Optimistic UI update so countdown pauses immediately
-              window.__carListCache = current;
-              try {
-                window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: current } }));
-              } catch (_) {}
-
-              if (window.saveCarListToFirebase) window.saveCarListToFirebase(current);
-            } catch (_) {}
-          }
-
-          function handleActionPointerDown(e) {
-            const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
-            if (!btn) return;
-            if (e.pointerType === 'mouse' && e.button !== 0) return;
-            btn.dataset.pdHandled = '1';
-            e.preventDefault();
-            e.stopPropagation();
-            handleActionClick(e);
-          }
-
-          // Desktop: bắt pointerdown để nút R/C không bị hụt do gesture kéo/chọn dòng.
-          cellInfo.addEventListener('pointerdown', handleActionPointerDown, true);
-          cellAction.addEventListener('pointerdown', handleActionPointerDown, true);
-          cellInfo.addEventListener('click', handleActionClick);
-          cellAction.addEventListener('click', handleActionClick);
-
-          row.addEventListener('click', function (e) {
-            desktopRowClickMulti(e, car, row);
-          });
-
-          if (car.note) {
-            try {
-              const noteRow = tbody.insertRow();
-              noteRow.classList.add('car-note-row');
-              noteRow.setAttribute('data-car-index', String(index));
-              const noteCell = noteRow.insertCell();
-              noteCell.colSpan = 6;
-              const noteTone = getNoteVisualTone(car, countByCode);
-              noteCell.innerHTML =
-                '<div class="car-note-line ' +
-                noteTone +
-                '" data-car-index="' +
-                index +
-                '">' +
-                escapeHtml(car.note) +
-                '</div>';
-            } catch (_) {}
-          }
-
-          // Mobile compact row + swipe actions
-          if (mobileHost) {
-            const paidBtnHtml = `<button class="btn btn-status btn-sm ${isPaid ? 'btn-success' : 'btn-warning'}" type="button" data-action="togglePaid">${isPaid ? 'R' : 'C'}</button>`;
-            const doneBtnLabel = car.done ? 'Res' : 'Vào';
-            const noteToneM = getNoteVisualTone(car, countByCode);
-            const noteBlock = car.note
-              ? '<div class="mobile-note-row"><div class="car-note-line ' +
-                noteToneM +
-                '" data-car-index="' +
-                index +
-                '">' +
-                escapeHtml(car.note) +
-                '</div></div>'
-              : '';
-
-            const rowEl = document.createElement('div');
-            rowEl.className = 'swipe-row';
-            rowEl.style.setProperty('--actions-width', '216px');
-            rowEl.setAttribute('data-row', String(index));
-            if (car && car.id != null) rowEl.setAttribute('data-car-id', String(car.id));
-            rowEl.innerHTML = `
-              <div class="swipe-actions" aria-hidden="true">
-                <button class="action-time" type="button" data-action="time">Time</button>
-                <button class="action-note" type="button" data-action="note">Ghi chú</button>
-                <button class="action-delete" type="button" data-action="delete">Xóa</button>
-              </div>
-              <div class="swipe-content">
-                <div class="mobile-row-stack">
-                  <div class="mobile-row">
-                    <div class="in4">${paidBtnHtml}</div>
-                    <div class="mobile-code">${carCodeHtml}</div>
-                    <div class="mobile-time">
-                      <span class="time-out"><b>${fmtTime(timeOut)}</b></span>
-                      <span class="time-in"><b>${fmtTime(timeIn)}</b></span>
-                    </div>
-                    <div style="text-align:right;">
-                      <span class="countdown${urgent ? ' urgent' : ''}" data-car-row="${index}">${formatRemaining(remMs)}</span>
-                    </div>
-                    <div style="text-align:right;">
-                      <button class="btn btn-success btn-sm" type="button" data-action="toggleDone">${doneBtnLabel}</button>
-                    </div>
-                  </div>
-                  ${noteBlock}
-                </div>
-              </div>
-            `;
-
-            // Click: chọn nhiều (chạm nền) hoặc C/R + Vào (nút trong .swipe-content)
-            rowEl.addEventListener('click', function (e) {
-              if (rowEl.dataset.suppressRowClick === '1') {
-                try {
-                  delete rowEl.dataset.suppressRowClick;
-                } catch (_) {}
-                return;
-              }
-              if (rowMultiSelectState.active) {
-                var btn0 = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
-                if (!btn0 || btn0.closest('.swipe-actions')) {
-                  if (btn0 && btn0.closest('.swipe-actions')) return;
-                  if (car && car.id != null) {
-                    e.stopPropagation();
-                    toggleRowMultiByCarId(car.id);
-                  }
-                  return;
-                }
-              }
-              const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
-              if (!btn) return;
-              const action = btn.getAttribute('data-action');
-              if (!action) return;
-              if (btn.closest('.swipe-actions')) return;
-              e.stopPropagation();
-              handleMobileRowAction(rowEl, index, action);
-            });
-
-            mobileHost.appendChild(rowEl);
-          }
-        });
-
-        // Desktop: add spacer row so bottom-bar doesn't cover last data row
-        try {
-          const spacerRow = tbody.insertRow();
-          spacerRow.classList.add('spacer-row');
-          spacerRow.style.height = '100px';
-          for (let i = 0; i < 6; i++) {
-            const spacerCell = spacerRow.insertCell(i);
-            spacerCell.innerHTML = '&nbsp;';
-            spacerCell.style.border = 'none';
-            spacerCell.style.background = 'transparent';
-            spacerCell.style.padding = '0';
-          }
-        } catch (_) {}
-
-        syncRowMultiSelectClasses(carList);
-        applyDuplicateOverdueUi(carList);
-        if (rowTimeQuickState.visible && rowTimeQuickState.rowIndex != null) {
-          var rowFollow = document.querySelector(
-            '#carListMobile .swipe-row[data-row="' + String(rowTimeQuickState.rowIndex) + '"]'
-          );
-          if (rowFollow) showRowTimeQuickPad(rowFollow, rowTimeQuickState.rowIndex);
-          else hideRowTimeQuickPad();
-        }
-      }
-
-      function tickCountdowns() {
-        const list = window.__carListCache || [];
-
-        // Detect transitions to overdue (avoid spam)
-        try {
-          list.forEach(function (car, idx) {
-            if (!car || typeof car !== 'object') return;
-            const remMs = getRemainingMs(car.timeIn, car);
-            const wasOverdue = !!car._wasOverdue;
-            const isOverdue = !!(!car.done && !car.isNullTime && remMs != null && remMs <= 0);
-            if (isOverdue && !wasOverdue) {
-              // only notify once per car id (best-effort)
-              if (!overdueNotifiedIds.has(car.id)) {
-                notifyOverdue(car);
-                overdueNotifiedIds.add(car.id);
-              }
-            }
-            if (!isOverdue) {
-              overdueNotifiedIds.delete(car.id);
-              if (car.carCode) removeCarFromOverdueToast(car.carCode);
-            }
-            car._wasOverdue = isOverdue;
-          });
-        } catch (_) {}
-
-        // Always rebuild toast state so closing it won't "disable" warnings
-        // while cars are still overdue (matches index.html behavior intent).
-        syncOverdueToastWithCurrentState();
-
-        const spans = document.querySelectorAll('.countdown[data-car-row]');
-        spans.forEach(function (span) {
-          const idx = Number(span.getAttribute('data-car-row'));
-          if (Number.isNaN(idx)) return;
-          const car = list[idx];
-          if (!car) return;
-          const remMs = getRemainingMs(car.timeIn, car);
-          span.textContent = formatRemaining(remMs);
-          const urgent = (remMs != null && remMs <= 2 * 60 * 1000 && remMs > 0);
-          span.classList.toggle('urgent', urgent);
-        });
-
-        applyDuplicateOverdueUi(list);
-      }
-
-      // Swipe trái: lộ nút (opacity theo tỉ lệ kéo). Kéo phải mạnh (ZArchiver): chọn nhiều dòng.
-      (function setupSwipe() {
-        var activeRow = null;
-        var startX = 0;
-        var startY = 0;
-        var dragging = false;
-        var intentLocked = false;
-        var isHorizontal = false;
-        var actionsWidth = 216;
-        var maxPosDx = 0;
-        var gestureStartedClosed = true;
-
-        function getOpenedRow() {
-          try {
-            return document.querySelector('#carListMobile .swipe-row.open');
-          } catch (_) {
-            return null;
-          }
-        }
-
-        function closeRow(row) {
-          if (!row) return;
-          clearRowPullHint(row);
-          clearActionsAnalog(row);
-          row.classList.remove('open');
-          row.classList.remove('dragging');
-          var c = row.querySelector('.swipe-content');
-          if (c) {
-            c.style.transition = '';
-            c.style.transform = '';
-          }
-        }
-
-        function clearActionsAnalog(row) {
-          if (!row) return;
-          var actionsEl = row.querySelector('.swipe-actions');
-          if (actionsEl) {
-            actionsEl.style.opacity = '';
-            actionsEl.style.pointerEvents = '';
-          }
-        }
-
-        function clearRowPullHint(row) {
-          if (!row) return;
-          row.classList.remove('row-select-pull-hint');
-          row.style.removeProperty('--row-pull');
-        }
-
-        function closeActive() {
-          closeRow(activeRow);
-          closeRow(getOpenedRow());
-          hideRowTimeQuickPad();
-          activeRow = null;
-        }
-
-        document.addEventListener('pointerdown', function (e) {
-          var inMoveMode = document.body.classList.contains('row-move-mode-active');
-          if (e.target && e.target.closest && e.target.closest('#rowTimeQuickPad')) return;
-          var row = e.target && e.target.closest ? e.target.closest('.swipe-row') : null;
-          if (!row) {
-            closeActive();
-            return;
-          }
-
-          var opened = getOpenedRow();
-          if (opened && opened !== row) {
-            closeRow(opened);
-            hideRowTimeQuickPad();
-            if (activeRow === opened) activeRow = null;
-          }
-
-          if (e.target && e.target.closest && e.target.closest('.swipe-actions')) {
-            if (inMoveMode) return;
-            return;
-          }
-
-          activeRow = row;
-          activeRow.classList.add('dragging');
-          startX = e.clientX;
-          startY = e.clientY;
-          dragging = true;
-          intentLocked = false;
-          isHorizontal = false;
-          maxPosDx = 0;
-          gestureStartedClosed = !row.classList.contains('open');
-          actionsWidth = 216;
-          try {
-            var aw = getComputedStyle(row).getPropertyValue('--actions-width').trim();
-            if (aw.endsWith('px')) actionsWidth = Number(aw.replace('px', '')) || actionsWidth;
-          } catch (_) {}
-          row.setPointerCapture && row.setPointerCapture(e.pointerId);
-        }, { passive: true });
-
-        document.addEventListener('pointermove', function (e) {
-          if (!dragging || !activeRow) return;
-          var inMoveMode = document.body.classList.contains('row-move-mode-active');
-          var dx = e.clientX - startX;
-          var dy = e.clientY - startY;
-
-          if (!intentLocked) {
-            if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-            intentLocked = true;
-            isHorizontal = Math.abs(dx) > Math.abs(dy);
-          }
-          if (!isHorizontal) return;
-
-          if (inMoveMode && dx < 0) {
-            clearRowPullHint(activeRow);
-            var c = activeRow.querySelector('.swipe-content');
-            if (c) {
-              c.style.transition = 'none';
-              c.style.transform = 'translateX(0px)';
-            }
-            clearActionsAnalog(activeRow);
-            return;
-          }
-
-          e.preventDefault();
-
-          if (gestureStartedClosed && dx > 0) {
-            maxPosDx = Math.max(maxPosDx, dx);
-          }
-
-          var content = activeRow.querySelector('.swipe-content');
-          if (!content) return;
-
-          var currentOpen = activeRow.classList.contains('open') ? -actionsWidth : 0;
-          var tx;
-          if (!activeRow.classList.contains('open') && gestureStartedClosed && dx > 0) {
-            var maxPull = 32;
-            tx = Math.min(maxPull, Math.pow(dx, 0.88) * 0.5);
-            activeRow.classList.add('row-select-pull-hint');
-            activeRow.style.setProperty('--row-pull', String(Math.min(1, dx / 70)));
-          } else {
-            clearRowPullHint(activeRow);
-            tx = currentOpen + dx;
-            if (tx > 0) tx = 0;
-          }
-          if (tx < -actionsWidth) tx = -actionsWidth;
-
-          content.style.transition = 'none';
-          content.style.transform = 'translateX(' + tx + 'px)';
-
-          var actionsEl = activeRow.querySelector('.swipe-actions');
-          if (actionsEl && actionsWidth > 0) {
-            var ratio = Math.min(1, Math.abs(tx) / actionsWidth);
-            var op = Math.max(0.06, ratio);
-            actionsEl.style.opacity = String(op);
-            actionsEl.style.pointerEvents = op > 0.42 ? 'auto' : 'none';
-          }
-        }, { passive: false });
-
-        document.addEventListener('pointerup', function () {
-          if (!dragging) return;
-          dragging = false;
-
-          if (!activeRow) return;
-          clearRowPullHint(activeRow);
-          var content = activeRow.querySelector('.swipe-content');
-          if (!content) return;
-          content.style.transition = '';
-          activeRow.classList.remove('dragging');
-
-          var rowRef = activeRow;
-          var actionsEl = rowRef.querySelector('.swipe-actions');
-          if (actionsEl) {
-            actionsEl.style.opacity = '';
-            actionsEl.style.pointerEvents = '';
-          }
-
-          if (!intentLocked || !isHorizontal) {
-            if (rowRef.classList.contains('open')) {
-              rowRef.classList.remove('open');
-              content.style.transform = '';
-            } else {
-              content.style.transform = '';
-            }
-            clearActionsAnalog(rowRef);
-            activeRow = rowRef.classList.contains('open') ? rowRef : null;
-            return;
-          }
-
-          var m = content.style.transform.match(/translateX\((-?\d+(?:\.\d+)?)px\)/);
-          var tx = m ? Number(m[1]) : 0;
-          var shouldOpen = tx < -actionsWidth * 0.45;
-
-          if (shouldOpen) {
-            rowRef.classList.add('open');
-            content.style.transform = '';
-            activeRow = rowRef;
-          } else {
-            rowRef.classList.remove('open');
-            content.style.transform = '';
-            activeRow = null;
-          }
-
-          var firedRight =
-            gestureStartedClosed && maxPosDx > 62 && !rowRef.classList.contains('open') && !shouldOpen;
-          if (firedRight) {
-            var ri = Number(rowRef.getAttribute('data-row'));
-            if (!Number.isNaN(ri)) {
-              rowRef.dataset.suppressRowClick = '1';
-              window.setTimeout(function () {
-                try {
-                  delete rowRef.dataset.suppressRowClick;
-                } catch (_) {}
-              }, 380);
-              onRightSwipeRowSelect(ri);
-            }
-          }
-
-          clearActionsAnalog(rowRef);
-          if (!rowRef.classList.contains('open')) activeRow = null;
-        }, { passive: true });
-
-        document.addEventListener('pointercancel', function () {
-          dragging = false;
-          if (activeRow) {
-            clearRowPullHint(activeRow);
-            activeRow.classList.remove('dragging');
-            var content = activeRow.querySelector('.swipe-content');
-            if (content) {
-              content.style.transition = '';
-              content.style.transform = '';
-            }
-            clearActionsAnalog(activeRow);
-          }
-          activeRow = null;
-        }, { passive: true });
-      })();
-
-      (function setupDesktopRowSelectSwipe() {
-        var tb = document.querySelector('#car-list tbody');
-        if (!tb || tb.dataset.desktopRswipe === '1') return;
-        tb.dataset.desktopRswipe = '1';
-        var st = null;
-
-        tb.addEventListener('pointerdown', function (e) {
-          var tr = e.target && e.target.closest ? e.target.closest('tr.car-data-row') : null;
-          if (!tr) return;
-          if (e.target && e.target.closest && e.target.closest('button')) return;
-          if (st && st.tr) {
-            st.tr.classList.remove('row-select-pull-hint');
-            st.tr.style.removeProperty('--pull-tx');
-            st.tr.style.removeProperty('--row-pull');
-          }
-          st = {
-            id: e.pointerId,
-            x: e.clientX,
-            y: e.clientY,
-            tr: tr,
-            locked: false,
-            horiz: false,
-            maxR: 0
-          };
-          try {
-            tr.setPointerCapture(e.pointerId);
-          } catch (_) {}
-        });
-
-        tb.addEventListener('pointermove', function (e) {
-          if (!st || e.pointerId !== st.id) return;
-          var dx = e.clientX - st.x;
-          var dy = e.clientY - st.y;
-          if (!st.locked) {
-            if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
-            st.locked = true;
-            st.horiz = Math.abs(dx) > Math.abs(dy);
-          }
-          if (!st.horiz) return;
-          if (dx > st.maxR) st.maxR = dx;
-          if (dx > 4 && st.tr) {
-            var px = Math.min(26, Math.pow(dx, 0.88) * 0.48);
-            st.tr.classList.add('row-select-pull-hint');
-            st.tr.style.setProperty('--pull-tx', px + 'px');
-            st.tr.style.setProperty('--row-pull', String(Math.min(1, dx / 68)));
-          } else if (st.tr) {
-            st.tr.classList.remove('row-select-pull-hint');
-            st.tr.style.removeProperty('--pull-tx');
-            st.tr.style.removeProperty('--row-pull');
-          }
-        });
-
-        function finish(e) {
-          if (!st) return;
-          if (e && e.pointerId != null && e.pointerId !== st.id) return;
-          if (window.__suppressDesktopSwipeOnce) {
-            window.__suppressDesktopSwipeOnce = false;
-            var te = st.tr;
-            st = null;
-            if (te) {
-              te.classList.remove('row-select-pull-hint');
-              te.style.removeProperty('--pull-tx');
-              te.style.removeProperty('--row-pull');
-            }
-            return;
-          }
-          var trEl = st.tr;
-          var idx = Number(trEl.getAttribute('data-car-index'));
-          var ok = st.locked && st.horiz && st.maxR > 62;
-          st = null;
-          if (trEl) {
-            trEl.classList.remove('row-select-pull-hint');
-            trEl.style.removeProperty('--pull-tx');
-            trEl.style.removeProperty('--row-pull');
-          }
-          if (ok && !Number.isNaN(idx)) {
-            suppressDesktopRowClick = true;
-            window.setTimeout(function () {
-              suppressDesktopRowClick = false;
-            }, 120);
-            onRightSwipeRowSelect(idx);
-          }
-        }
-
-        tb.addEventListener('pointerup', finish);
-        tb.addEventListener('pointercancel', finish);
-      })();
-
-      (function setupRowMoveDrag() {
-        var LONG_MS = 450;
-        var MOVE_PRE_THRESH = 14;
-        var pmOpts = { capture: true, passive: false };
-        var lpTimer = null;
-        var lp = null;
-        var drag = null;
-        var ghostEl = null;
-
-        function isMobileMoveLayout() {
-          return typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 768px)').matches;
-        }
-
-        function captureMobileRowRects() {
-          var map = new Map();
-          document.querySelectorAll('#carListMobile .swipe-row[data-car-id]').forEach(function (rowEl) {
-            var key = rowEl.getAttribute('data-car-id');
-            if (!key) return;
-            map.set(key, rowEl.getBoundingClientRect());
-          });
-          return map;
-        }
-
-        function playMobileFlip(beforeRects) {
-          if (!beforeRects || !beforeRects.size) return;
-          var rows = Array.from(document.querySelectorAll('#carListMobile .swipe-row[data-car-id]'));
-          rows.forEach(function (rowEl) {
-            var key = rowEl.getAttribute('data-car-id');
-            var prev = key ? beforeRects.get(key) : null;
-            if (!prev) return;
-            var next = rowEl.getBoundingClientRect();
-            var dy = prev.top - next.top;
-            if (Math.abs(dy) < 1) return;
-            rowEl.style.transition = 'none';
-            rowEl.style.transform = 'translate3d(0,' + dy + 'px,0)';
-          });
-          requestAnimationFrame(function () {
-            rows.forEach(function (rowEl) {
-              if (!rowEl.style.transform) return;
-              rowEl.style.transition = 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)';
-              rowEl.style.transform = '';
-            });
-          });
-        }
-
-        function clearDragPreviewStyles() {
-          document.querySelectorAll('#carListMobile .swipe-row').forEach(function (rowEl) {
-            rowEl.classList.remove('row-move-source', 'row-move-gap-target', 'row-move-neighbor');
-            rowEl.style.removeProperty('transition');
-            rowEl.style.removeProperty('transform');
-          });
-        }
-
-        function applyDragPreviewStyles(selectedIds, targetBeforeIndex) {
-          clearDragPreviewStyles();
-          var selected = new Set(
-            (selectedIds || []).map(function (id) {
-              return String(id);
-            })
-          );
-          document.querySelectorAll('#carListMobile .swipe-row[data-car-id]').forEach(function (rowEl) {
-            var key = rowEl.getAttribute('data-car-id');
-            if (key && selected.has(String(key))) {
-              rowEl.classList.add('row-move-source');
-            }
-          });
-          var rows = Array.from(document.querySelectorAll('#carListMobile .swipe-row[data-row]'));
-          if (targetBeforeIndex == null) return;
-          var targetRow = rows.find(function (rowEl) {
-            return Number(rowEl.getAttribute('data-row')) === Number(targetBeforeIndex);
-          });
-          if (!targetRow && rows.length) {
-            targetRow = rows[rows.length - 1];
-          }
-          if (targetRow) {
-            targetRow.classList.add('row-move-gap-target');
-            var prev = targetRow.previousElementSibling;
-            var next = targetRow.nextElementSibling;
-            if (prev && prev.classList) prev.classList.add('row-move-neighbor');
-            if (next && next.classList) next.classList.add('row-move-neighbor');
-          }
-        }
-
-        function setPreviewList(previewList, targetBeforeIndex) {
-          if (!drag) return;
-          drag.previewList = previewList;
-          if (!isMobileMoveLayout()) return;
-          var beforeRects = isMobileMoveLayout() ? captureMobileRowRects() : null;
-          window.__carListCache = previewList;
-          renderCarList(previewList);
-          if (isMobileMoveLayout()) {
-            applyDragPreviewStyles(drag.selectedCarIds, targetBeforeIndex);
-            playMobileFlip(beforeRects);
-          }
-        }
-
-        function applyMoveBlock(list, indices, targetBeforeIndex) {
-          indices = indices
-            .filter(function (i) {
-              return i >= 0 && i < list.length;
-            })
-            .sort(function (a, b) {
-              return a - b;
-            });
-          var uniq = [];
-          indices.forEach(function (i) {
-            if (uniq.indexOf(i) < 0) uniq.push(i);
-          });
-          indices = uniq;
-          if (indices.length === 0) return list.slice();
-          var n = list.length;
-          var t = Math.max(0, Math.min(targetBeforeIndex, n));
-          var minI = indices[0];
-          var maxI = indices[indices.length - 1];
-          if (t > minI && t <= maxI) {
-            t = t - minI <= maxI - t + 1 ? minI : maxI + 1;
-          }
-          var block = indices.map(function (i) {
-            return list[i];
-          });
-          var rest = list.filter(function (_, i) {
-            return indices.indexOf(i) < 0;
-          });
-          var insertBefore = 0;
-          for (var i = 0; i < t; i++) {
-            if (indices.indexOf(i) < 0) insertBefore++;
-          }
-          rest.splice.apply(rest, [insertBefore, 0].concat(block));
-          return rest;
-        }
-
-        function getIndicesForMove(startIndex) {
-          var list = window.__carListCache || [];
-          var car = list[startIndex];
-          if (!car || car.id == null) return [startIndex];
-          if (
-            rowMultiSelectState.selectedIds &&
-            rowMultiSelectState.selectedIds.size > 0 &&
-            rowMultiSelectState.selectedIds.has(car.id)
-          ) {
-            var out = [];
-            list.forEach(function (c, i) {
-              if (c && rowMultiSelectState.selectedIds.has(c.id)) out.push(i);
-            });
-            return out.sort(function (a, b) {
-              return a - b;
-            });
-          }
-          return [startIndex];
-        }
-
-        function getRowRects() {
-          var list = window.__carListCache || [];
-          var n = list.length;
-          var rects = new Array(n);
-          var mobile =
-            typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 768px)').matches;
-          if (mobile) {
-            document.querySelectorAll('#carListMobile .swipe-row[data-row]').forEach(function (el) {
-              var idx = Number(el.getAttribute('data-row'));
-              if (!Number.isNaN(idx) && idx >= 0 && idx < n) rects[idx] = el.getBoundingClientRect();
-            });
-          } else {
-            document.querySelectorAll('#car-list tbody tr.car-data-row').forEach(function (el) {
-              var idx = Number(el.getAttribute('data-car-index'));
-              if (!Number.isNaN(idx) && idx >= 0 && idx < n) rects[idx] = el.getBoundingClientRect();
-            });
-          }
-          return rects;
-        }
-
-        function yToInsertIndex(clientY) {
-          var rects = getRowRects();
-          var list = window.__carListCache || [];
-          var n = list.length;
-          for (var i = 0; i < n; i++) {
-            var r = rects[i];
-            if (!r) continue;
-            var mid = (r.top + r.bottom) / 2;
-            if (clientY < mid) return i;
-          }
-          return n;
-        }
-
-        function yToInsertIndexByCenters(clientY, centers, n) {
-          if (!Array.isArray(centers) || centers.length === 0) return yToInsertIndex(clientY);
-          for (var i = 0; i < n; i++) {
-            var mid = centers[i];
-            if (typeof mid !== 'number') continue;
-            if (clientY < mid) return i;
-          }
-          return n;
-        }
-
-        function clearLpTimer() {
-          if (lpTimer) {
-            clearTimeout(lpTimer);
-            lpTimer = null;
-          }
-          lp = null;
-        }
-
-        function removeGhost() {
-          if (ghostEl && ghostEl.parentNode) ghostEl.parentNode.removeChild(ghostEl);
-          ghostEl = null;
-        }
-
-        function buildGhost(indices, sourceRowEl) {
-          removeGhost();
-          var list = window.__carListCache || [];
-          var codes = indices.map(function (i) {
-            var c = list[i];
-            return c && c.carCode ? escapeHtml(c.carCode) : '—';
-          });
-          ghostEl = document.createElement('div');
-          ghostEl.className = 'move-drag-ghost';
-          ghostEl.setAttribute('aria-hidden', 'true');
-          var inner = document.createElement('div');
-          inner.className = 'move-drag-ghost-inner';
-          var sourceContent =
-            sourceRowEl && sourceRowEl.querySelector ? sourceRowEl.querySelector('.swipe-content') : null;
-          if (sourceContent) {
-            inner.classList.add('move-drag-ghost-row');
-            if (codes.length > 1) {
-              inner.classList.add('is-group');
-              inner.setAttribute('data-group-count', '+' + (codes.length - 1));
-            }
-            inner.appendChild(sourceContent.cloneNode(true));
-          } else if (codes.length <= 1) {
-            inner.textContent = codes[0] || '—';
-            inner.style.transform = 'scale(0.92)';
-          } else {
-            var stack = document.createElement('div');
-            stack.className = 'move-drag-ghost-stack';
-            var show = codes.slice(0, 4);
-            show.forEach(function (t, k) {
-              var card = document.createElement('div');
-              card.className = 'move-drag-ghost-card';
-              card.textContent = t;
-              card.style.zIndex = String(10 - k);
-              stack.appendChild(card);
-            });
-            if (codes.length > 4) {
-              var more = document.createElement('div');
-              more.className = 'move-drag-ghost-card';
-              more.textContent = '+' + (codes.length - 4);
-              more.style.opacity = '0.9';
-              stack.appendChild(more);
-            }
-            inner.appendChild(stack);
-          }
-          ghostEl.appendChild(inner);
-          document.body.appendChild(ghostEl);
-          return ghostEl;
-        }
-
-        function showCancelZone(show) {
-          var z = document.getElementById('moveDragCancelZone');
-          if (!z) return;
-          z.classList.toggle('is-visible', !!show);
-          z.setAttribute('aria-hidden', show ? 'false' : 'true');
-        }
-
-        function setCancelHover(on) {
-          var z = document.getElementById('moveDragCancelZone');
-          if (!z) return;
-          z.classList.toggle('is-hover', !!on);
-        }
-
-        function pointInCancelZone(px, py) {
-          var z = document.getElementById('moveDragCancelZone');
-          if (!z || !z.classList.contains('is-visible')) return false;
-          var r = z.getBoundingClientRect();
-          return px >= r.left && px <= r.right && py >= r.top && py <= r.bottom;
-        }
-
-        function endDrag(commit) {
-          if (!drag) return;
-          var snap = drag.snapshot;
-          var nextList = drag.newList;
-          window.__moveRowDragPointerId = null;
-          document.body.classList.remove('row-move-dragging');
-          showCancelZone(false);
-          setCancelHover(false);
-          removeGhost();
-          clearDragPreviewStyles();
-          document.removeEventListener('pointermove', onPointerMove, pmOpts);
-          document.removeEventListener('pointerup', onPointerUp, true);
-          document.removeEventListener('pointercancel', onPointerUp, true);
-          window.__suppressDesktopSwipeOnce = true;
-          suppressDesktopRowClick = true;
-          window.setTimeout(function () {
-            suppressDesktopRowClick = false;
-          }, 280);
-          if (commit === false && snap) {
-            try {
-              window.__carListCache = JSON.parse(snap);
-            } catch (_) {}
-            renderCarList(window.__carListCache || []);
-            syncOverdueToastWithCurrentState();
-          } else if (commit === true && nextList) {
-            window.__carListCache = nextList;
-            if (window.saveCarListToFirebase) window.saveCarListToFirebase(nextList);
-            renderCarList(nextList);
-            syncOverdueToastWithCurrentState();
-          }
-          drag = null;
-        }
-
-        function onPointerMove(e) {
-          if (!drag || e.pointerId !== drag.pointerId) return;
-          if (!ghostEl) return;
-          e.preventDefault();
-          var cx = e.clientX;
-          var cy = e.clientY;
-          ghostEl.style.transform =
-            'translate3d(' + (cx - drag.offX) + 'px,' + (cy - drag.offY) + 'px,0) scale(0.94)';
-          setCancelHover(pointInCancelZone(cx, cy));
-          var nextTarget = isMobileMoveLayout()
-            ? yToInsertIndexByCenters(cy, drag.baseCenters, drag.baseLength || (window.__carListCache || []).length)
-            : yToInsertIndex(cy);
-          if (nextTarget !== drag.targetBefore) {
-            drag.targetBefore = nextTarget;
-            var baseList;
-            try {
-              baseList = JSON.parse(drag.snapshot);
-            } catch (_) {
-              baseList = window.__carListCache || [];
-            }
-            setPreviewList(applyMoveBlock(baseList, drag.indices, drag.targetBefore), drag.targetBefore);
-          }
-        }
-
-        function onPointerUp(e) {
-          if (!drag || e.pointerId !== drag.pointerId) return;
-          var cx = e.clientX;
-          var cy = e.clientY;
-          if (pointInCancelZone(cx, cy)) {
-            endDrag(false);
-            return;
-          }
-          var list;
-          try {
-            list = JSON.parse(drag.snapshot);
-          } catch (_) {
-            endDrag(false);
-            return;
-          }
-          var next = applyMoveBlock(list, drag.indices, drag.targetBefore);
-          drag.newList = next;
-          endDrag(true);
-        }
-
-        function startDrag(lp) {
-          clearLpTimer();
-          var indices = getIndicesForMove(lp.startIndex);
-          if (indices.length === 0) return;
-          var sourceRect = lp.rowEl && lp.rowEl.getBoundingClientRect ? lp.rowEl.getBoundingClientRect() : null;
-          var selectedCarIds = indices
-            .map(function (i) {
-              var c = (window.__carListCache || [])[i];
-              return c && c.id != null ? c.id : null;
-            })
-            .filter(function (id) {
-              return id != null;
-            });
-          try {
-            drag = {
-              pointerId: lp.pointerId,
-              indices: indices,
-              snapshot: JSON.stringify(window.__carListCache || []),
-              targetBefore: lp.startIndex,
-              offX: sourceRect ? Math.max(18, Math.min(lp.x - sourceRect.left, sourceRect.width - 18)) : 40,
-              offY: sourceRect ? Math.max(16, Math.min(lp.y - sourceRect.top, sourceRect.height - 16)) : 24,
-              selectedCarIds: selectedCarIds,
-              baseCenters: null,
-              baseLength: (window.__carListCache || []).length,
-              newList: null
-            };
-          } catch (_) {
-            return;
-          }
-          window.__moveRowDragPointerId = lp.pointerId;
-          document.body.classList.add('row-move-dragging');
-          buildGhost(indices, lp.rowEl);
-          var cx = lp.lastX != null ? lp.lastX : lp.x;
-          var cy = lp.lastY != null ? lp.lastY : lp.y;
-          if (isMobileMoveLayout()) {
-            var rects0 = getRowRects();
-            drag.baseCenters = rects0.map(function (r) {
-              return r ? (r.top + r.bottom) / 2 : null;
-            });
-          }
-          drag.targetBefore = isMobileMoveLayout()
-            ? yToInsertIndexByCenters(cy, drag.baseCenters, drag.baseLength)
-            : yToInsertIndex(cy);
-          try {
-            var previewBase = JSON.parse(drag.snapshot);
-            setPreviewList(applyMoveBlock(previewBase, drag.indices, drag.targetBefore), drag.targetBefore);
-          } catch (_) {}
-          ghostEl.style.transform =
-            'translate3d(' + (cx - drag.offX) + 'px,' + (cy - drag.offY) + 'px,0) scale(0.94)';
-          showCancelZone(true);
-          document.addEventListener('pointermove', onPointerMove, pmOpts);
-          document.addEventListener('pointerup', onPointerUp, true);
-          document.addEventListener('pointercancel', onPointerUp, true);
-        }
-
-        function onPointerDown(e) {
-          if (!document.body.classList.contains('row-move-mode-active')) return;
-          if (e.pointerType === 'mouse' && e.button !== 0) return;
-          var tr = e.target && e.target.closest ? e.target.closest('tr.car-data-row') : null;
-          var noteTr = e.target && e.target.closest ? e.target.closest('tr.car-note-row') : null;
-          var row = e.target && e.target.closest ? e.target.closest('.swipe-row[data-row]') : null;
-          if (noteTr && !tr) {
-            tr = noteTr;
-          }
-          if (!tr && !row) return;
-          if (e.target && e.target.closest && e.target.closest('button')) return;
-          if (e.target && e.target.closest && e.target.closest('.swipe-actions')) return;
-          e.preventDefault();
-
-          var startIndex = tr
-            ? Number(tr.getAttribute('data-car-index'))
-            : Number(row.getAttribute('data-row'));
-          if (Number.isNaN(startIndex)) return;
-
-          var rowEl = tr || row;
-          var sx = e.clientX;
-          var sy = e.clientY;
-          lp = {
-            x: sx,
-            y: sy,
-            lastX: sx,
-            lastY: sy,
-            startIndex: startIndex,
-            rowEl: rowEl,
-            pointerId: e.pointerId
-          };
-          var pid = e.pointerId;
-          lpTimer = window.setTimeout(function () {
-            lpTimer = null;
-            if (!lp || lp.pointerId !== pid) return;
-            var lpCopy = lp;
-            lp = null;
-            startDrag(lpCopy);
-          }, LONG_MS);
-        }
-
-        function onEarlyMove(e) {
-          if (!lp || e.pointerId !== lp.pointerId) return;
-          e.preventDefault();
-          lp.lastX = e.clientX;
-          lp.lastY = e.clientY;
-          var dx = e.clientX - lp.x;
-          var dy = e.clientY - lp.y;
-          if (Math.abs(dx) > MOVE_PRE_THRESH && Math.abs(dx) > Math.abs(dy)) {
-            clearLpTimer();
-          }
-        }
-
-        function onEarlyUp(e) {
-          if (lp && e.pointerId === lp.pointerId) clearLpTimer();
-        }
-
-        document.addEventListener('pointerdown', onPointerDown, true);
-        document.addEventListener('pointermove', onEarlyMove, true);
-        document.addEventListener('pointerup', onEarlyUp, true);
-        document.addEventListener('pointercancel', onEarlyUp, true);
-      })();
-
-      (function wireRowMultiSelectUi() {
-        var ex = document.getElementById('exitRowMultiSelectBtn');
-        if (ex)
-          ex.addEventListener('click', function () {
-            hideRowTimeQuickPad();
-            setMultiTimeMode(false);
-            exitRowMultiSelect();
-          });
-        var t = document.getElementById('msBtnTime');
-        if (t)
-          t.addEventListener('click', function () {
-            var n = rowMultiSelectState.selectedIds.size;
-            if (n === 0) return;
-            setMultiTimeMode(!multiTimeMode);
-          });
-        var note = document.getElementById('msBtnNote');
-        if (note)
-          note.addEventListener('click', function () {
-            if (!window.bootstrap) return;
-            var n = rowMultiSelectState.selectedIds.size;
-            if (n === 0) return;
-            var c = document.getElementById('multiNoteCount');
-            var ta = document.getElementById('multiNoteInput');
-            if (c) c.textContent = String(n);
-            if (ta) ta.value = '';
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('multiNoteModal')).show();
-          });
-        var del = document.getElementById('msBtnDelete');
-        if (del) del.addEventListener('click', deleteSelectedRowsNew);
-        var g = document.getElementById('msBtnGroup');
-        if (g)
-          g.addEventListener('click', function () {
-            void groupSelectedCarsNew();
-          });
-        var u = document.getElementById('msBtnUngroup');
-        if (u) u.addEventListener('click', ungroupSelectedCarsNew);
-
-        var msBar = document.getElementById('multiSelectActionBar');
-        if (msBar) {
-          msBar.addEventListener('click', function (ev) {
-            var b = ev.target && ev.target.closest && ev.target.closest('[data-msq-delta]');
-            if (!b) return;
-            if (!multiTimeMode) return;
-            var d = b.getAttribute('data-msq-delta');
-            if (d === 'xneg') changeMultiTimeNew(-readXStepMinutes());
-            else if (d === 'xpos') changeMultiTimeNew(readXStepMinutes());
-            else if (d === 'null') setMultiTimeNullNew();
-            else changeMultiTimeNew(Number(d));
-          });
-        }
-        var msBack = document.getElementById('msTimeModeBackBtn');
-        if (msBack) msBack.addEventListener('click', function () { setMultiTimeMode(false); });
-        var applyN = document.getElementById('multiNoteApplyBtn');
-        if (applyN) applyN.addEventListener('click', applyMultiNoteNew);
-
-        var changeGrid = document.getElementById('changeCarSelectionContainer');
-        if (changeGrid) {
-          changeGrid.addEventListener('click', function (ev) {
-            var btn = ev.target && ev.target.closest && ev.target.closest('[data-change-car-code]');
-            if (!btn) return;
-            var code = btn.getAttribute('data-change-car-code');
-            if (!code) return;
-            applyChangeCarCode(code);
-            var modalEl = document.getElementById('changeCarCodeModal');
-            if (modalEl && window.bootstrap) {
-              var m = bootstrap.Modal.getOrCreateInstance(modalEl);
-              m.hide();
-            }
-          });
-        }
-
-        var changeTabs = document.getElementById('changeCarTabs');
-        if (changeTabs) {
-          changeTabs.addEventListener('click', function (ev) {
-            var btn = ev.target && ev.target.closest && ev.target.closest('[data-change-car-tab]');
-            if (!btn) return;
-            var tab = btn.getAttribute('data-change-car-tab');
-            setChangeCarTab(tab || 'all');
-          });
-        }
-
-        var rowPad = document.getElementById('rowTimeQuickPad');
-        if (rowPad) {
-          rowPad.addEventListener('click', function (ev) {
-            var b = ev.target && ev.target.closest && ev.target.closest('[data-rsq-delta]');
-            if (!b) return;
-            var idx = rowTimeQuickState.rowIndex;
-            if (idx == null) return;
-            var d = b.getAttribute('data-rsq-delta');
-            if (d === 'xneg') applySingleRowTimeDelta(idx, -readXStepMinutes());
-            else if (d === 'xpos') applySingleRowTimeDelta(idx, readXStepMinutes());
-            else if (d === 'null') setSingleRowTimeNull(idx);
-            else applySingleRowTimeDelta(idx, Number(d));
-            var rowAgain = document.querySelector('#carListMobile .swipe-row[data-row="' + String(idx) + '"]');
-            if (rowAgain) showRowTimeQuickPad(rowAgain, idx);
-          });
-        }
-
-        document.addEventListener('pointerdown', function (ev) {
-          var pad = document.getElementById('rowTimeQuickPad');
-          if (!pad || !pad.classList.contains('show')) return;
-          if (ev.target && ev.target.closest && ev.target.closest('#rowTimeQuickPad')) return;
-          if (ev.target && ev.target.closest && ev.target.closest('.swipe-actions .action-time')) return;
-          hideRowTimeQuickPad();
-        }, true);
-
-        window.addEventListener('resize', function () {
-          if (!rowTimeQuickState.visible || rowTimeQuickState.rowIndex == null) return;
-          var row = document.querySelector('#carListMobile .swipe-row[data-row="' + String(rowTimeQuickState.rowIndex) + '"]');
-          if (!row) {
-            hideRowTimeQuickPad();
-            return;
-          }
-          showRowTimeQuickPad(row, rowTimeQuickState.rowIndex);
-        });
-        updateMultiSelectChrome();
-      })();
-
-      window.addEventListener('carListUpdated', function (e) {
-        const list = e && e.detail && e.detail.carList ? e.detail.carList : (window.__carListCache || []);
-        renderCarList(list);
-        syncOverdueToastWithCurrentState();
-      });
-
-      // Initial render (in case cache already exists)
-      renderCarList(window.__carListCache || []);
-      syncOverdueToastWithCurrentState();
-      setInterval(tickCountdowns, 1000);
-    })();
-  </script>
-
-  <script>
-    (function () {
-      var btn = document.getElementById('fullscreenBtn');
-      if (!btn) return;
-
-      function isFullscreen() {
-        return !!document.fullscreenElement;
-      }
-
-      async function toggleFullscreen() {
-        try {
-          if (!isFullscreen()) {
-            await document.documentElement.requestFullscreen();
-          } else {
-            await document.exitFullscreen();
-          }
-        } catch (e) {
-          // Ignore (fullscreen can be blocked by browser policies)
-        }
-      }
-
-      btn.addEventListener('click', function () {
-        toggleFullscreen();
-      });
-    })();
-  </script>
 </body>
-</html>
+</html> 
+ 
