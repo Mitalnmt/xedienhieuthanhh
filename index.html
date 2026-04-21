@@ -19,21 +19,23 @@
       background-color: #000000;
     }
 
-    @supports (height: 100dvh) {
-      html, body {
-        min-height: 100dvh;
-        height: 100dvh;
-      }
+    /* Chặn long-press menu (copy/select) trên mobile */
+    body {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    input, textarea, select {
+      -webkit-user-select: text;
+      user-select: text;
+      -webkit-touch-callout: default;
     }
 
     :root {
       --topbar-height: 44px;
       --bottom-bar-height: 56px;
-      --bottom-bar-offset: 12px;
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --vv-bottom-inset: 0px;
-      --bottom-browser-inset: max(var(--safe-bottom), var(--vv-bottom-inset));
-      --bottom-bar-total-height: calc(var(--bottom-bar-height) + var(--bottom-browser-inset) + var(--bottom-bar-offset));
       --topbar-bg: rgba(16, 16, 16, 0.92);
       --topbar-border: rgba(255, 255, 255, 0.10);
       --topbar-fg: rgba(255, 255, 255, 0.92);
@@ -44,7 +46,7 @@
 
     body {
       padding-top: var(--topbar-height);
-      padding-bottom: calc(var(--bottom-bar-total-height) + 8px);
+      padding-bottom: calc(var(--bottom-bar-height) + 8px);
     }
 
     .topbar {
@@ -78,7 +80,7 @@
       top: var(--topbar-height);
       left: 0;
       right: 0;
-      bottom: var(--bottom-bar-total-height);
+      bottom: var(--bottom-bar-height);
       background: rgba(0, 0, 0, 0.55);
       z-index: 9997;
       opacity: 0;
@@ -98,7 +100,7 @@
       position: fixed;
       top: var(--topbar-height);
       left: 0;
-      bottom: var(--bottom-bar-total-height);
+      bottom: var(--bottom-bar-height);
       width: min(380px, 92vw);
       z-index: 9998;
       background: rgba(0, 0, 0, 0.92);
@@ -252,7 +254,7 @@
       position: fixed;
       left: 0;
       right: 0;
-      bottom: calc(var(--bottom-browser-inset) + var(--bottom-bar-offset));
+      bottom: 0;
       height: var(--bottom-bar-height);
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -312,7 +314,7 @@
     .move-drag-cancel-zone {
       position: fixed;
       left: 50%;
-      bottom: calc(var(--bottom-bar-total-height) + 16px);
+      bottom: calc(var(--bottom-bar-height) + 16px);
       transform: translateX(-50%) scale(1);
       z-index: 10006;
       display: none;
@@ -451,7 +453,7 @@
       position: fixed;
       left: 0;
       right: 0;
-      bottom: var(--bottom-bar-total-height);
+      bottom: var(--bottom-bar-height);
       z-index: 10001;
       min-height: 48px;
       padding: 6px 10px;
@@ -671,12 +673,12 @@
 
     body.row-multi-select-active .car-menu-panel,
     body.row-move-mode-active .car-menu-panel {
-      bottom: calc(var(--bottom-bar-total-height) + 48px);
+      bottom: calc(var(--bottom-bar-height) + 48px);
     }
 
     body.row-multi-select-active .list-bottom-spacer,
     body.row-move-mode-active .list-bottom-spacer {
-      height: calc(var(--bottom-bar-total-height) + 76px);
+      height: calc(var(--bottom-bar-height) + 76px);
     }
 
     .car-menu-panel {
@@ -684,7 +686,7 @@
       top: var(--topbar-height);
       left: 0;
       right: 0;
-      bottom: var(--bottom-bar-total-height); /* match .bottom-bar dynamic height */
+      bottom: var(--bottom-bar-height); /* match .bottom-bar height */
       z-index: 9998;
       display: flex;
       background: rgba(0, 0, 0, 0.72);
@@ -1472,7 +1474,7 @@
 
     /* Spacer so bottom-bar doesn't cover last rows */
     .list-bottom-spacer {
-      height: calc(var(--bottom-bar-total-height) + 20px);
+      height: calc(var(--bottom-bar-height) + 20px);
       width: 100%;
     }
 
@@ -3994,6 +3996,8 @@
         var lp = null;
         var drag = null;
         var ghostEl = null;
+        var rafPending = false;
+        var pendingTarget = null;
 
         function isMobileMoveLayout() {
           return typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 768px)').matches;
@@ -4170,16 +4174,6 @@
           return n;
         }
 
-        function yToInsertIndexByCenters(clientY, centers, n) {
-          if (!Array.isArray(centers) || centers.length === 0) return yToInsertIndex(clientY);
-          for (var i = 0; i < n; i++) {
-            var mid = centers[i];
-            if (typeof mid !== 'number') continue;
-            if (clientY < mid) return i;
-          }
-          return n;
-        }
-
         function clearLpTimer() {
           if (lpTimer) {
             clearTimeout(lpTimer);
@@ -4304,11 +4298,29 @@
           ghostEl.style.transform =
             'translate3d(' + (cx - drag.offX) + 'px,' + (cy - drag.offY) + 'px,0) scale(0.94)';
           setCancelHover(pointInCancelZone(cx, cy));
-          var nextTarget = isMobileMoveLayout()
-            ? yToInsertIndexByCenters(cy, drag.baseCenters, drag.baseLength || (window.__carListCache || []).length)
-            : yToInsertIndex(cy);
-          if (nextTarget !== drag.targetBefore) {
-            drag.targetBefore = nextTarget;
+
+          // Auto-scroll when dragging near edges (mobile + desktop).
+          try {
+            var edge = 90;
+            var maxVel = 18;
+            var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+            var vel = 0;
+            if (cy < edge) vel = -Math.min(maxVel, Math.round((edge - cy) / 6));
+            else if (vh && cy > vh - edge) vel = Math.min(maxVel, Math.round((cy - (vh - edge)) / 6));
+            if (vel) window.scrollBy(0, vel);
+          } catch (_) {}
+
+          var nextTarget = yToInsertIndex(cy);
+          if (nextTarget === drag.targetBefore) return;
+          pendingTarget = nextTarget;
+          if (rafPending) return;
+          rafPending = true;
+          requestAnimationFrame(function () {
+            rafPending = false;
+            if (!drag) return;
+            if (pendingTarget == null) return;
+            if (pendingTarget === drag.targetBefore) return;
+            drag.targetBefore = pendingTarget;
             var baseList;
             try {
               baseList = JSON.parse(drag.snapshot);
@@ -4316,7 +4328,7 @@
               baseList = window.__carListCache || [];
             }
             setPreviewList(applyMoveBlock(baseList, drag.indices, drag.targetBefore), drag.targetBefore);
-          }
+          });
         }
 
         function onPointerUp(e) {
@@ -4361,8 +4373,6 @@
               offX: sourceRect ? Math.max(18, Math.min(lp.x - sourceRect.left, sourceRect.width - 18)) : 40,
               offY: sourceRect ? Math.max(16, Math.min(lp.y - sourceRect.top, sourceRect.height - 16)) : 24,
               selectedCarIds: selectedCarIds,
-              baseCenters: null,
-              baseLength: (window.__carListCache || []).length,
               newList: null
             };
           } catch (_) {
@@ -4373,15 +4383,7 @@
           buildGhost(indices, lp.rowEl);
           var cx = lp.lastX != null ? lp.lastX : lp.x;
           var cy = lp.lastY != null ? lp.lastY : lp.y;
-          if (isMobileMoveLayout()) {
-            var rects0 = getRowRects();
-            drag.baseCenters = rects0.map(function (r) {
-              return r ? (r.top + r.bottom) / 2 : null;
-            });
-          }
-          drag.targetBefore = isMobileMoveLayout()
-            ? yToInsertIndexByCenters(cy, drag.baseCenters, drag.baseLength)
-            : yToInsertIndex(cy);
+          drag.targetBefore = yToInsertIndex(cy);
           try {
             var previewBase = JSON.parse(drag.snapshot);
             setPreviewList(applyMoveBlock(previewBase, drag.indices, drag.targetBefore), drag.targetBefore);
@@ -4406,7 +4408,7 @@
           if (!tr && !row) return;
           if (e.target && e.target.closest && e.target.closest('button')) return;
           if (e.target && e.target.closest && e.target.closest('.swipe-actions')) return;
-          e.preventDefault();
+          // Don't preventDefault here: allow native scroll while waiting for long-press.
 
           var startIndex = tr
             ? Number(tr.getAttribute('data-car-index'))
@@ -4437,12 +4439,16 @@
 
         function onEarlyMove(e) {
           if (!lp || e.pointerId !== lp.pointerId) return;
-          e.preventDefault();
           lp.lastX = e.clientX;
           lp.lastY = e.clientY;
           var dx = e.clientX - lp.x;
           var dy = e.clientY - lp.y;
           if (Math.abs(dx) > MOVE_PRE_THRESH && Math.abs(dx) > Math.abs(dy)) {
+            clearLpTimer();
+            return;
+          }
+          // If user is scrolling vertically, cancel long-press to allow scroll.
+          if (Math.abs(dy) > MOVE_PRE_THRESH && Math.abs(dy) > Math.abs(dx)) {
             clearLpTimer();
           }
         }
@@ -4590,23 +4596,29 @@
 
   <script>
     (function () {
-      function updateViewportBottomInset() {
-        var vv = window.visualViewport;
-        var inset = 0;
-        if (vv) {
-          var h = window.innerHeight || document.documentElement.clientHeight || 0;
-          inset = Math.max(0, h - (vv.height + vv.offsetTop));
-        }
-        document.documentElement.style.setProperty('--vv-bottom-inset', inset + 'px');
+      // Extra guard for Android browsers: prevent long-press context menu/selection on app UI.
+      function isTextInput(el) {
+        if (!el) return false;
+        var tag = (el.tagName || '').toLowerCase();
+        return tag === 'input' || tag === 'textarea' || tag === 'select' || (el.isContentEditable === true);
       }
 
-      updateViewportBottomInset();
-      window.addEventListener('resize', updateViewportBottomInset);
-      window.addEventListener('orientationchange', updateViewportBottomInset);
-      if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', updateViewportBottomInset);
-        window.visualViewport.addEventListener('scroll', updateViewportBottomInset);
-      }
+      document.addEventListener(
+        'contextmenu',
+        function (e) {
+          if (isTextInput(e.target)) return;
+          e.preventDefault();
+        },
+        true
+      );
+      document.addEventListener(
+        'selectstart',
+        function (e) {
+          if (isTextInput(e.target)) return;
+          e.preventDefault();
+        },
+        true
+      );
     })();
   </script>
 
