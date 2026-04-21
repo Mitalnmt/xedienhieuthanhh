@@ -1520,11 +1520,6 @@
       </button>
     </div>
     <div class="topbar-right">
-      <button class="icon-btn" id="fullscreenBtn" type="button" title="Fullscreen" aria-label="Toggle fullscreen">
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
     </div>
   </header>
 
@@ -1538,6 +1533,13 @@
       </button>
     </div>
     <div class="settings-drawer-body">
+      <div class="mb-3">
+        <label class="form-label">Thứ tự dòng trong danh sách:</label>
+        <div class="d-flex gap-2 mb-2">
+          <button class="btn btn-primary btn-sm" id="openRowMoveModeBtn" type="button">Di chuyển</button>
+        </div>
+      </div>
+
       <div class="mb-3">
         <label class="form-label">Thời gian đếm ngược mặc định:</label>
         <div class="row g-2">
@@ -1569,13 +1571,6 @@
         <label class="form-label">Màu nhóm khi gộp xe (Chọn Xe → Gộp):</label>
         <div class="d-flex gap-2 mb-2">
           <button class="btn btn-primary btn-sm" id="openMergeColorPaletteBtn" type="button">Chỉnh màu nhóm xe</button>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Thứ tự dòng trong danh sách:</label>
-        <div class="d-flex gap-2 mb-2">
-          <button class="btn btn-primary btn-sm" id="openRowMoveModeBtn" type="button">Di chuyển</button>
         </div>
       </div>
     </div>
@@ -2177,8 +2172,9 @@
         drawer.classList.add('open');
         drawer.setAttribute('aria-hidden', 'false');
         overlay.setAttribute('aria-hidden', 'false');
+        // Không auto focus input trên mobile (tránh bật bàn phím)
         try {
-          if (minutesInput) minutesInput.focus();
+          if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
         } catch (_) {}
       }
 
@@ -4397,7 +4393,10 @@
         }
 
         function onPointerDown(e) {
-          if (!document.body.classList.contains('row-move-mode-active')) return;
+          var inMoveMode = document.body.classList.contains('row-move-mode-active');
+          var inMultiSelect = document.body.classList.contains('row-multi-select-active');
+          // Chỉ kích hoạt long-press-to-move ở mode thường (không multi-select, không đang kéo swipe).
+          if (!inMoveMode && inMultiSelect) return;
           if (e.pointerType === 'mouse' && e.button !== 0) return;
           var tr = e.target && e.target.closest ? e.target.closest('tr.car-data-row') : null;
           var noteTr = e.target && e.target.closest ? e.target.closest('tr.car-note-row') : null;
@@ -4433,6 +4432,12 @@
             if (!lp || lp.pointerId !== pid) return;
             var lpCopy = lp;
             lp = null;
+            // Nếu đang ở mode thường, long-press sẽ tự vào mode di chuyển trước.
+            if (!document.body.classList.contains('row-move-mode-active')) {
+              try {
+                if (typeof window.__enterRowMoveMode === 'function') window.__enterRowMoveMode();
+              } catch (_) {}
+            }
             startDrag(lpCopy);
           }, LONG_MS);
         }
@@ -4622,31 +4627,5 @@
     })();
   </script>
 
-  <script>
-    (function () {
-      var btn = document.getElementById('fullscreenBtn');
-      if (!btn) return;
-
-      function isFullscreen() {
-        return !!document.fullscreenElement;
-      }
-
-      async function toggleFullscreen() {
-        try {
-          if (!isFullscreen()) {
-            await document.documentElement.requestFullscreen();
-          } else {
-            await document.exitFullscreen();
-          }
-        } catch (e) {
-          // Ignore (fullscreen can be blocked by browser policies)
-        }
-      }
-
-      btn.addEventListener('click', function () {
-        toggleFullscreen();
-      });
-    })();
-  </script>
 </body>
 </html>
