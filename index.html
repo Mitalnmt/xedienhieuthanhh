@@ -256,10 +256,9 @@
       right: 0;
       bottom: 0;
       height: var(--bottom-bar-height);
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      display: flex;
+      justify-content: center;
       align-items: center;
-      padding: 0 8px 0 10px;
       background: rgba(16, 16, 16, 0.92);
       border-top: 1px solid rgba(255, 255, 255, 0.10);
       backdrop-filter: blur(10px);
@@ -267,14 +266,19 @@
       z-index: 10002;
       transform: translateZ(0);
       backface-visibility: hidden;
+      touch-action: none;
     }
 
     .bottom-bar-center {
-      justify-self: center;
+      position: relative;
+      z-index: 10004;
     }
 
     .bottom-bar-exit-multi {
-      justify-self: end;
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
       width: 36px;
       height: 36px;
       padding: 0;
@@ -290,6 +294,165 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 160ms ease, visibility 0s linear 160ms;
+      z-index: 10004;
+    }
+
+    /* Bottombar action buttons (Gộp/Thêm) - nằm giữa bottom bar với animation */
+    .bottom-bar-actions {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10003;
+    }
+
+    /* Slide in animation - hiệu ứng lướt vào từ dưới */
+    .bottom-bar-actions.slide-in {
+      animation: slideUpFadeIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      pointer-events: auto;
+    }
+
+    /* Slide out animation - hiệu ứng lướt xuống và biến mất */
+    .bottom-bar-actions.slide-out {
+      animation: slideDownFadeOut 200ms ease-in forwards;
+    }
+
+    @keyframes slideUpFadeIn {
+      0% {
+        opacity: 0;
+        pointer-events: auto;
+        transform: translate(-50%, -50%) translateY(20px) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translate(-50%, -50%) translateY(0) scale(1);
+      }
+    }
+
+    @keyframes slideDownFadeOut {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translateY(20px) scale(0.9);
+      }
+    }
+
+    /* Nút Chọn Xe animation */
+    #openCarMenuBtn {
+      transition: opacity 280ms ease, transform 280ms cubic-bezier(.4,0,.2,1);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* Slide out - lướt sang trái và biến mất */
+    #openCarMenuBtn.slide-out {
+      animation: slideLeftFadeOut 200ms ease-in forwards;
+    }
+
+    /* Slide in - lướt vào từ trái */
+    #openCarMenuBtn.slide-in {
+      animation: slideRightFadeIn 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    #openCarMenuBtn.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @keyframes slideLeftFadeOut {
+      0% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+    }
+
+    @keyframes slideRightFadeIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .bottom-bar-actions .action-btn {
+      height: 42px;
+      min-width: 100px;
+      padding: 0 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      border: none;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .bottom-bar-actions .action-btn:active {
+      transform: scale(0.95);
+    }
+
+    .bottom-bar-actions .action-btn-group {
+      background: rgba(76, 175, 80, 0.9);
+      color: white;
+      box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+    }
+
+    .bottom-bar-actions .action-btn-add {
+      background: rgba(33, 150, 243, 0.9);
+      color: white;
+      box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4);
+    }
+
+    .bottom-bar-actions .action-btn:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    /* Swipe gesture overlay for bottombar - không chặn click buttons */
+    .bottombar-swipe-zone {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--bottom-bar-height);
+      z-index: 10001;
+      pointer-events: none;
+    }
+
+    body.car-menu-open .bottombar-swipe-zone {
+      pointer-events: auto;
+    }
+    
+    body.car-menu-open .bottombar-swipe-zone::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
     }
 
     body.row-multi-select-active .bottom-bar-exit-multi,
@@ -1369,8 +1532,8 @@
     }
 
     body.row-move-dragging .swipe-row.row-move-source .swipe-content {
-      opacity: 0;
-      transform: scale(0.92);
+      opacity: 0.18;
+      transform: scale(0.98);
     }
 
     body.row-move-dragging .swipe-row.row-move-gap-target {
@@ -1680,7 +1843,15 @@
   </div>
 
   <footer class="bottom-bar" role="contentinfo" aria-label="Bottom bar">
-    <span aria-hidden="true"></span>
+    <!-- Bottombar actions (Gộp/Thêm) - nằm trong bottom bar khi menu mở -->
+    <div class="bottom-bar-actions" id="bottomBarActions">
+      <button class="action-btn action-btn-group" id="bottomBarGroupBtn" disabled>
+        <i class="fas fa-layer-group"></i> Gộp
+      </button>
+      <button class="action-btn action-btn-add" id="bottomBarAddBtn" disabled>
+        <i class="fas fa-plus"></i> Thêm
+      </button>
+    </div>
     <div class="bottom-bar-center">
       <button class="btn btn-primary btn-sm" id="openCarMenuBtn" type="button">
         <i class="fas fa-car"></i> Chọn Xe
@@ -1688,6 +1859,9 @@
     </div>
     <button type="button" class="bottom-bar-exit-multi" id="exitRowMultiSelectBtn" title="Thoát chọn nhiều" aria-label="Thoát chọn nhiều">×</button>
   </footer>
+
+  <!-- Swipe zone cho bottombar - vuốt trái sang phải để đóng menu -->
+  <div class="bottombar-swipe-zone" id="bottombarSwipeZone"></div>
 
   <!-- Panel menu chọn xe (không đè topbar/bottombar) -->
   <section class="car-menu-panel" id="carMenuPanel" aria-label="Menu chọn xe" aria-hidden="true">
@@ -1705,19 +1879,6 @@
 
       <div class="car-menu-body">
         <div id="multipleCarSelectionContainer"></div>
-      </div>
-
-      <div class="car-menu-actions">
-        <button class="btn btn-success" id="multiSelectGroupBtn" onclick="window.multipleCarSelection && window.multipleCarSelection.addSelectedCarsAsGroup()" disabled>
-          <i class="fas fa-layer-group"></i>
-          <span class="action-label-full">Gộp thành nhóm</span>
-          <span class="action-label-short">Gộp</span>
-        </button>
-        <button class="btn btn-primary" id="multiSelectAddBtn" onclick="window.multipleCarSelection && window.multipleCarSelection.addSelectedCarsIndividually()" disabled>
-          <i class="fas fa-plus"></i>
-          <span class="action-label-full">Thêm riêng lẻ</span>
-          <span class="action-label-short">Thêm</span>
-        </button>
       </div>
     </div>
   </section>
@@ -2879,7 +3040,7 @@
 
       var rowTimeQuickState = { visible: false, rowIndex: null };
       var multiTimeMode = false;
-      var changeCarState = { rowIndex: null, activeTabId: 'all' };
+      var changeCarState = { rowIndex: null, activeTabId: 'all', isChangeCarMode: false };
 
       function setMultiTimeMode(on) {
         var bar = document.getElementById('multiSelectActionBar');
@@ -3200,18 +3361,17 @@
         var current = window.__carListCache || [];
         if (!current[index]) return;
         changeCarState.rowIndex = index;
-        changeCarState.activeTabId = 'all';
-        var lbl = document.getElementById('changeCarCurrentLabel');
-        if (lbl) {
-          lbl.textContent = 'Xe hiện tại: ' + (current[index].carCode || '');
-        }
-        renderChangeCarTabs();
-        renderChangeCarSelectionInterface();
-        var modalEl = document.getElementById('changeCarCodeModal');
-        if (modalEl && window.bootstrap) {
-          bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        
+        // Mở menu chọn xe với mode đổi xe
+        if (window.multipleCarSelection) {
+          window.multipleCarSelection.enterChangeCarMode(index);
         }
       }
+
+      // Export để đồng bộ rowIndex với multiple-car-selection.js
+      window.setChangeCarStateRowIndex = function(index) {
+        changeCarState.rowIndex = index;
+      };
 
       function applyChangeCarCode(newCode) {
         var idx = changeCarState.rowIndex;
@@ -3229,7 +3389,12 @@
           window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: current } }));
         } catch (_) {}
         if (window.saveCarListToFirebase) window.saveCarListToFirebase(current);
+        // Reset change car mode
+        changeCarState.isChangeCarMode = false;
       }
+
+      // Export for use in multiple-car-selection.js
+      window.applyChangeCarCode = applyChangeCarCode;
 
       function desktopRowClickMulti(e, car, row) {
         if (suppressDesktopRowClick) return;
@@ -3572,6 +3737,7 @@
 
             // Click: chọn nhiều (chạm nền) hoặc C/R + Vào (nút trong .swipe-content)
             rowEl.addEventListener('click', function (e) {
+              if (window.__suppressMobileRowClickUntil && Date.now() < window.__suppressMobileRowClickUntil) return;
               if (rowEl.dataset.suppressRowClick === '1') {
                 try {
                   delete rowEl.dataset.suppressRowClick;
@@ -3735,6 +3901,19 @@
             return;
           }
 
+          // Khi đang ở move mode, cho phép swipe phải để chọn nhiều dòng
+          // Swipe trái sẽ bị bỏ qua (để tránh conflict với drag)
+          if (inMoveMode) {
+            // Trong move mode, vẫn track start position để detect swipe
+            activeRow = row;
+            startX = e.clientX;
+            startY = e.clientY;
+            dragging = true;
+            isHorizontal = false;
+            intentLocked = false;
+            return;
+          }
+
           var opened = getOpenedRow();
           if (opened && opened !== row) {
             closeRow(opened);
@@ -3775,7 +3954,22 @@
             intentLocked = true;
             isHorizontal = Math.abs(dx) > Math.abs(dy);
           }
-          if (!isHorizontal) return;
+          if (!isHorizontal) {
+            // Nếu trong move mode và detect được swipe phải, xử lý chọn dòng
+            if (inMoveMode && dx > 14 && Math.abs(dx) > Math.abs(dy)) {
+              var ri = Number(activeRow.getAttribute('data-car-index'));
+              if (Number.isNaN(ri)) ri = Number(activeRow.getAttribute('data-row'));
+              if (!Number.isNaN(ri) && typeof onRightSwipeRowSelect === 'function') {
+                onRightSwipeRowSelect(ri);
+              }
+              // Reset để chuẩn bị cho lần tương tác tiếp theo
+              dragging = false;
+              activeRow = null;
+              intentLocked = false;
+              isHorizontal = false;
+            }
+            return;
+          }
 
           if (inMoveMode && dx < 0) {
             clearRowPullHint(activeRow);
@@ -3991,7 +4185,7 @@
       })();
 
       (function setupRowMoveDrag() {
-        var LONG_MS = 450;
+        var LONG_MS = 500;
         var MOVE_PRE_THRESH = 14;
         var pmOpts = { capture: true, passive: false };
         var lpTimer = null;
@@ -4219,6 +4413,8 @@
           if (!drag) return;
           var snap = drag.snapshot;
           var nextList = drag.newList;
+          var capEl = drag.captureEl;
+          var capPid = drag.pointerId;
           window.__moveRowDragPointerId = null;
           document.body.classList.remove('row-move-dragging');
           showCancelZone(false);
@@ -4230,19 +4426,27 @@
           document.removeEventListener('pointercancel', onPointerUp, true);
           window.__suppressDesktopSwipeOnce = true;
           suppressDesktopRowClick = true;
+          window.__suppressMobileRowClickUntil = Date.now() + 420;
           window.setTimeout(function () {
             suppressDesktopRowClick = false;
           }, 280);
+          try {
+            if (capEl && capEl.releasePointerCapture) capEl.releasePointerCapture(capPid);
+          } catch (_) {}
           if (commit === false && snap) {
             try {
               window.__carListCache = JSON.parse(snap);
             } catch (_) {}
             renderCarList(window.__carListCache || []);
+            syncRowMultiSelectClasses(window.__carListCache || []);
+            updateMultiSelectChrome();
             syncOverdueToastWithCurrentState();
           } else if (commit === true && nextList) {
             window.__carListCache = nextList;
             if (window.saveCarListToFirebase) window.saveCarListToFirebase(nextList);
             renderCarList(nextList);
+            syncRowMultiSelectClasses(nextList);
+            updateMultiSelectChrome();
             syncOverdueToastWithCurrentState();
           }
           drag = null;
@@ -4293,6 +4497,10 @@
 
         function onPointerUp(e) {
           if (!drag || e.pointerId !== drag.pointerId) return;
+          try {
+            e.preventDefault();
+            e.stopPropagation();
+          } catch (_) {}
           var cx = e.clientX;
           var cy = e.clientY;
           if (pointInCancelZone(cx, cy)) {
@@ -4333,6 +4541,7 @@
               offX: sourceRect ? Math.max(18, Math.min(lp.x - sourceRect.left, sourceRect.width - 18)) : 40,
               offY: sourceRect ? Math.max(16, Math.min(lp.y - sourceRect.top, sourceRect.height - 16)) : 24,
               selectedCarIds: selectedCarIds,
+              captureEl: lp.rowEl,
               newList: null
             };
           } catch (_) {
@@ -4340,6 +4549,9 @@
           }
           window.__moveRowDragPointerId = lp.pointerId;
           document.body.classList.add('row-move-dragging');
+          try {
+            if (lp.rowEl && lp.rowEl.setPointerCapture) lp.rowEl.setPointerCapture(lp.pointerId);
+          } catch (_) {}
           buildGhost(indices, lp.rowEl);
           var cx = lp.lastX != null ? lp.lastX : lp.x;
           var cy = lp.lastY != null ? lp.lastY : lp.y;
@@ -4355,9 +4567,9 @@
 
         function onPointerDown(e) {
           var inMoveMode = document.body.classList.contains('row-move-mode-active');
+          // Chỉ kích hoạt long-press-to-move ở move mode
+          if (!inMoveMode) return;
           var inMultiSelect = document.body.classList.contains('row-multi-select-active');
-          // Chỉ kích hoạt long-press-to-move ở mode thường (không multi-select, không đang kéo swipe).
-          if (!inMoveMode && inMultiSelect) return;
           if (e.pointerType === 'mouse' && e.button !== 0) return;
           var tr = e.target && e.target.closest ? e.target.closest('tr.car-data-row') : null;
           var noteTr = e.target && e.target.closest ? e.target.closest('tr.car-note-row') : null;
@@ -4408,13 +4620,9 @@
           lp.lastX = e.clientX;
           lp.lastY = e.clientY;
           var dx = e.clientX - lp.x;
-          var dy = e.clientY - lp.y;
-          if (Math.abs(dx) > MOVE_PRE_THRESH && Math.abs(dx) > Math.abs(dy)) {
-            clearLpTimer();
-            return;
-          }
-          // If user is scrolling vertically, cancel long-press to allow scroll.
-          if (Math.abs(dy) > MOVE_PRE_THRESH && Math.abs(dy) > Math.abs(dx)) {
+          // Chỉ hủy long-press khi kéo NGANG (swipe-select), KHÔNG hủy khi kéo DỌC
+          // để người dùng cầm yên 3.5s là vào drag được, dù kéo thẳng lên
+          if (Math.abs(dx) > MOVE_PRE_THRESH && Math.abs(dx) > Math.abs(e.clientY - lp.y)) {
             clearLpTimer();
           }
         }
