@@ -1786,6 +1786,9 @@
     <button type="button" class="btn btn-outline-info btn-sm ms-default-btn" id="msBtnTime" title="Chỉnh thời gian">
       <span class="lbl-full">Thời gian</span><span class="lbl-short">Time</span>
     </button>
+    <button type="button" class="btn btn-outline-primary btn-sm ms-default-btn" id="msBtnSyncTime" title="Đồng bộ thời gian">
+      <span class="lbl-full">Đồng bộ</span><span class="lbl-short">Sync</span>
+    </button>
     <button type="button" class="btn btn-outline-secondary btn-sm ms-default-btn" id="msBtnNote" title="Ghi chú">
       <span class="lbl-full">Ghi chú</span><span class="lbl-short">Note</span>
     </button>
@@ -3038,6 +3041,104 @@
         } catch (_) {}
       }
 
+      function syncTimeSelectedCars(mode) {
+        if (rowMultiSelectState.selectedIds.size === 0) return;
+        var carList = (window.__carListCache || []).slice();
+        var selectedCars = carList.filter(function (c) {
+          return c && rowMultiSelectState.selectedIds.has(c.id) && !c.isNullTime;
+        });
+
+        if (selectedCars.length < 2) {
+          alert('Cần chọn ít nhất 2 dòng có thời gian để đồng bộ.');
+          return;
+        }
+
+        // Lấy thời gian timeIn thấp nhất và cao nhất
+        var times = selectedCars.map(function (car) {
+          return parseDateMaybe(car.timeIn);
+        }).filter(function (t) { return t !== null; });
+
+        if (times.length < 2) {
+          alert('Cần ít nhất 2 dòng có thời gian hợp lệ để đồng bộ.');
+          return;
+        }
+
+        var minTime = new Date(Math.min.apply(null, times.map(function (t) { return t.getTime(); })));
+        var maxTime = new Date(Math.max.apply(null, times.map(function (t) { return t.getTime(); })));
+        var diffMs = maxTime.getTime() - minTime.getTime();
+        var diffMinutes = diffMs / (1000 * 60);
+
+        // Nếu chênh lệch < 2 phút: tự động đồng bộ lên thời gian cao nhất
+        if (diffMinutes < 2) {
+          applySyncTime(carList, selectedCars, maxTime);
+          return;
+        }
+
+        // Chênh lệch >= 2 phút: hiển thị dialog hỏi
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;';
+        modal.innerHTML = ''
+          + '<div style="background:#fff;border-radius:12px;padding:24px;max-width:340px;width:90%;text-align:center;">'
+          + '<p style="margin:0 0 8px;font-size:16px;font-weight:600;color:#333;">Chênh lệch thời gian: ' + Math.round(diffMinutes) + ' phút</p>'
+          + '<p style="margin:0 0 20px;font-size:14px;color:#666;">Bạn muốn đồng bộ thời gian như thế nào?</p>'
+          + '<div style="display:flex;gap:12px;justify-content:center;">'
+          + '<button id="syncUpBtn" style="flex:1;padding:12px 16px;border:none;border-radius:8px;background:#28a745;color:#fff;font-size:14px;font-weight:500;cursor:pointer;">Đồng bộ lên</button>'
+          + '<button id="syncUniformBtn" style="flex:1;padding:12px 16px;border:none;border-radius:8px;background:#007bff;color:#fff;font-size:14px;font-weight:500;cursor:pointer;">Đồng bộ đều</button>'
+          + '</div>'
+          + '<button id="syncCancelBtn" style="margin-top:12px;padding:8px 16px;border:1px solid #ccc;border-radius:8px;background:#fff;color:#666;font-size:13px;cursor:pointer;">Hủy</button>'
+          + '</div>';
+        document.body.appendChild(modal);
+
+        document.getElementById('syncUpBtn').onclick = function () {
+          document.body.removeChild(modal);
+          applySyncTime(carList, selectedCars, maxTime);
+        };
+        document.getElementById('syncUniformBtn').onclick = function () {
+          document.body.removeChild(modal);
+          // Lấy trung bình tất cả thời gian rồi gán đều cho mọi dòng
+          var totalMs = 0;
+          selectedCars.forEach(function (car) {
+            var t = parseDateMaybe(car.timeIn);
+            if (t) totalMs += t.getTime();
+          });
+          var avgMs = totalMs / selectedCars.length;
+          var avgTime = new Date(avgMs);
+          selectedCars.forEach(function (car) {
+            var carInList = carList.find(function (c) { return c && c.id === car.id; });
+            if (carInList) {
+              carInList.timeIn = avgTime.toISOString();
+              carInList.isNullTime = false;
+            }
+          });
+          saveAndRefresh(carList);
+        };
+        document.getElementById('syncCancelBtn').onclick = function () {
+          document.body.removeChild(modal);
+        };
+        modal.onclick = function (e) {
+          if (e.target === modal) document.body.removeChild(modal);
+        };
+      }
+
+      function applySyncTime(carList, selectedCars, targetTime) {
+        selectedCars.forEach(function (car) {
+          var c = carList.find(function (x) { return x && x.id === car.id; });
+          if (c) {
+            c.timeIn = targetTime.toISOString();
+            c.isNullTime = false;
+          }
+        });
+        saveAndRefresh(carList);
+      }
+
+      function saveAndRefresh(carList) {
+        window.__carListCache = carList;
+        if (window.saveCarListToFirebase) window.saveCarListToFirebase(carList);
+        try {
+          window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carList } }));
+        } catch (_) {}
+      }
+
       var rowTimeQuickState = { visible: false, rowIndex: null };
       var multiTimeMode = false;
       var changeCarState = { rowIndex: null, activeTabId: 'all', isChangeCarMode: false };
@@ -3955,8 +4056,9 @@
             isHorizontal = Math.abs(dx) > Math.abs(dy);
           }
           if (!isHorizontal) {
-            // Nếu trong move mode và detect được swipe phải, xử lý chọn dòng
-            if (inMoveMode && dx > 14 && Math.abs(dx) > Math.abs(dy)) {
+            // Nếu trong move mode và detect được swipe phải rõ ràng (dx đủ lớn so với dy), xử lý chọn dòng
+            // Ngưỡng dx > 40 và |dx| > |dy|*1.5 để tránh detect nhầm khi swipe xuống mà nghiêng tay
+            if (inMoveMode && dx > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
               var ri = Number(activeRow.getAttribute('data-car-index'));
               if (Number.isNaN(ri)) ri = Number(activeRow.getAttribute('data-row'));
               if (!Number.isNaN(ri) && typeof onRightSwipeRowSelect === 'function') {
@@ -4651,6 +4753,13 @@
             var n = rowMultiSelectState.selectedIds.size;
             if (n === 0) return;
             setMultiTimeMode(!multiTimeMode);
+          });
+        var syncBtn = document.getElementById('msBtnSyncTime');
+        if (syncBtn)
+          syncBtn.addEventListener('click', function () {
+            var n = rowMultiSelectState.selectedIds.size;
+            if (n === 0) return;
+            syncTimeSelectedCars();
           });
         var note = document.getElementById('msBtnNote');
         if (note)
