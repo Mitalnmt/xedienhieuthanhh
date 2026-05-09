@@ -2102,6 +2102,11 @@
           try {
             window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carListCache } }));
           } catch (_) {}
+          try {
+            if (window.multipleCarSelection && typeof window.multipleCarSelection.refreshOutStateIfOpen === 'function') {
+              window.multipleCarSelection.refreshOutStateIfOpen();
+            }
+          } catch (_) {}
         });
       }
 
@@ -2175,7 +2180,14 @@
       window.addCarsBatch = addCarsBatch;
       window.addCar = addCar;
       window.getActiveOutCarCodes = function () {
-        return new Set(activeOutSet);
+        // Tính trực tiếp từ cache để UI (menu chọn xe) update ngay khi xóa/sửa local
+        // mà không phải đợi Firebase listener round-trip.
+        var list = window.__carListCache || [];
+        var s = new Set();
+        (Array.isArray(list) ? list : []).forEach(function (car) {
+          if (car && !car.done && !car.isNullTime && car.carCode) s.add(car.carCode);
+        });
+        return s;
       };
 
       listenCarList();
@@ -2954,6 +2966,11 @@
         try {
           window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: carList } }));
         } catch (_) {}
+        try {
+          if (window.multipleCarSelection && typeof window.multipleCarSelection.refreshOutStateIfOpen === 'function') {
+            window.multipleCarSelection.refreshOutStateIfOpen();
+          }
+        } catch (_) {}
       }
 
       function ungroupSelectedCarsNew() {
@@ -3547,6 +3564,11 @@
                 window.__carListCache = cur;
                 try {
                   window.dispatchEvent(new CustomEvent('carListUpdated', { detail: { carList: cur } }));
+                } catch (_) {}
+                try {
+                  if (window.multipleCarSelection && typeof window.multipleCarSelection.refreshOutStateIfOpen === 'function') {
+                    window.multipleCarSelection.refreshOutStateIfOpen();
+                  }
                 } catch (_) {}
                 if (window.saveCarListToFirebase) window.saveCarListToFirebase(cur);
               } catch (_) {}

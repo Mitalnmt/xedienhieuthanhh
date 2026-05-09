@@ -68,6 +68,10 @@ class MultipleCarSelection {
 
   // Thiết lập event listeners
   setupEventListeners() {
+    // Trên một số máy/mobile, "click" có thể bị hụt nếu pointerdown bị xử lý bởi handler khác.
+    // Ưu tiên trigger action ở pointerup để cảm giác bấm chắc hơn.
+    let bottomActionHandledAt = 0;
+
     const openBtn = document.getElementById('openCarMenuBtn');
     if (openBtn) {
       openBtn.addEventListener('pointerdown', (e) => {
@@ -93,9 +97,23 @@ class MultipleCarSelection {
     const groupBtn = document.getElementById('bottomBarGroupBtn');
     if (groupBtn) {
       groupBtn.addEventListener('pointerdown', (e) => {
-        e.stopImmediatePropagation();
-      }, true); // Capture phase
+        // Ngăn gesture/handler khác bắt nhầm
+        e.preventDefault();
+        e.stopPropagation();
+      }, { capture: true });
+      groupBtn.addEventListener('pointerup', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        bottomActionHandledAt = Date.now();
+        this.addSelectedCarsAsGroup();
+      }, { capture: true });
       groupBtn.addEventListener('click', (e) => {
+        // Nếu đã handle bằng pointerup thì bỏ qua click (tránh double)
+        if (Date.now() - bottomActionHandledAt < 350) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         e.stopPropagation();
         this.addSelectedCarsAsGroup();
       });
@@ -103,9 +121,21 @@ class MultipleCarSelection {
     const addBtn = document.getElementById('bottomBarAddBtn');
     if (addBtn) {
       addBtn.addEventListener('pointerdown', (e) => {
-        e.stopImmediatePropagation();
-      }, true); // Capture phase
+        e.preventDefault();
+        e.stopPropagation();
+      }, { capture: true });
+      addBtn.addEventListener('pointerup', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        bottomActionHandledAt = Date.now();
+        this.addSelectedCarsIndividually();
+      }, { capture: true });
       addBtn.addEventListener('click', (e) => {
+        if (Date.now() - bottomActionHandledAt < 350) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         e.stopPropagation();
         this.addSelectedCarsIndividually();
       });
@@ -135,6 +165,17 @@ class MultipleCarSelection {
     if (minimizeBtn) {
       minimizeBtn.addEventListener('click', () => this.minimizePanel());
     }
+
+    // Khi carList thay đổi (thêm/xóa/chỉnh time), menu cần rerender để update trạng thái "đang chạy" (tô tối)
+    window.addEventListener('carListUpdated', () => {
+      this.refreshOutStateIfOpen();
+    });
+  }
+
+  refreshOutStateIfOpen() {
+    if (!this.panelOpen) return;
+    this.renderSelectionInterface();
+    this.updateSelectedCount();
   }
 
   // Thiết lập click vào vùng trống bottombar để đóng menu
@@ -285,6 +326,11 @@ class MultipleCarSelection {
     if (!this.panelOpen || !this.panelMinimized) return;
     this.panelMinimized = false;
     this.syncPanelVisibility();
+    // Khi đang minimized, menu không rerender theo carListUpdated.
+    // Lúc hiện lại phải refresh trạng thái "xe đang chạy" ngay.
+    this.renderTabs();
+    this.renderSelectionInterface();
+    this.updateSelectedCount();
     this.updateBottomBarAnimation(true);
   }
 
