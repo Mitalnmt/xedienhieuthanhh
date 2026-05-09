@@ -266,7 +266,8 @@
       z-index: 10002;
       transform: translateZ(0);
       backface-visibility: hidden;
-      touch-action: none;
+      /* Cho phép tap/click ổn định; không dùng swipe-to-close nữa */
+      touch-action: manipulation;
     }
 
     .bottom-bar-center {
@@ -306,6 +307,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      padding: 8px 10px; /* nới vùng thao tác quanh 2 nút */
       opacity: 0;
       pointer-events: none;
       z-index: 10003;
@@ -392,9 +394,9 @@
     }
 
     .bottom-bar-actions .action-btn {
-      height: 42px;
-      min-width: 100px;
-      padding: 0 20px;
+      height: 46px;
+      min-width: 112px;
+      padding: 0 22px;
       border-radius: 12px;
       font-weight: 700;
       font-size: 0.95rem;
@@ -431,29 +433,7 @@
       pointer-events: none;
     }
 
-    /* Swipe gesture overlay for bottombar - không chặn click buttons */
-    .bottombar-swipe-zone {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: var(--bottom-bar-height);
-      z-index: 10001;
-      pointer-events: none;
-    }
-
-    body.car-menu-open .bottombar-swipe-zone {
-      pointer-events: auto;
-    }
-    
-    body.car-menu-open .bottombar-swipe-zone::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
+    /* (Removed) swipe-to-close overlay */
 
     body.row-multi-select-active .bottom-bar-exit-multi,
     body.row-move-mode-active .bottom-bar-exit-multi {
@@ -1862,9 +1842,6 @@
     </div>
     <button type="button" class="bottom-bar-exit-multi" id="exitRowMultiSelectBtn" title="Thoát chọn nhiều" aria-label="Thoát chọn nhiều">×</button>
   </footer>
-
-  <!-- Swipe zone cho bottombar - vuốt trái sang phải để đóng menu -->
-  <div class="bottombar-swipe-zone" id="bottombarSwipeZone"></div>
 
   <!-- Panel menu chọn xe (không đè topbar/bottombar) -->
   <section class="car-menu-panel" id="carMenuPanel" aria-label="Menu chọn xe" aria-hidden="true">

@@ -6,10 +6,6 @@ class MultipleCarSelection {
     this.activeTabId = 'all';
     this.panelOpen = false;
     this.panelMinimized = false;
-    // Swipe gesture state
-    this.swipeStartX = 0;
-    this.swipeStartY = 0;
-    this.swipeThreshold = 80;
     // Change car mode - khi đổi xe từ 1 xe đang có
     this.isChangeCarMode = false;
     this.changeCarRowIndex = null;
@@ -127,9 +123,6 @@ class MultipleCarSelection {
     };
     document.addEventListener('pointerdown', handleGlobalPointerDown, { capture: true });
 
-    // Swipe gesture cho bottombar - vuốt trái/phải sang để đóng menu
-    this.setupBottombarSwipe();
-    
     // Click vào vùng trống bottombar để đóng menu
     this.setupBottombarClickToClose();
 
@@ -144,29 +137,6 @@ class MultipleCarSelection {
     }
   }
 
-  // Thiết lập swipe gesture cho bottombar
-  setupBottombarSwipe() {
-    const swipeZone = document.getElementById('bottombarSwipeZone');
-    if (!swipeZone) return;
-
-    swipeZone.addEventListener('pointerdown', (e) => {
-      this.swipeStartX = e.clientX;
-      this.swipeStartY = e.clientY;
-    });
-
-    swipeZone.addEventListener('pointerup', (e) => {
-      if (!this.panelOpen || this.panelMinimized) return;
-      
-      const dx = e.clientX - this.swipeStartX;
-      const dy = Math.abs(e.clientY - this.swipeStartY);
-      
-      // Vuốt từ trái sang phải HOẶC phải sang trái với đủ khoảng cách và không phải vuốt dọc
-      if (Math.abs(dx) > this.swipeThreshold && dy < 60) {
-        this.minimizePanel();
-      }
-    });
-  }
-
   // Thiết lập click vào vùng trống bottombar để đóng menu
   setupBottombarClickToClose() {
     const bottomBar = document.querySelector('.bottom-bar');
@@ -177,6 +147,37 @@ class MultipleCarSelection {
       
       // Kiểm tra nếu click vào các buttons thì bỏ qua
       if (e.target.closest('button') || e.target.closest('.action-btn')) return;
+
+      // Khi menu mở, ưu tiên thao tác bấm Gộp/Thêm: nếu user bấm "lệch" quanh cụm actions
+      // thì cũng không được coi là bấm vùng trống để đóng.
+      const actions = document.getElementById('bottomBarActions');
+      if (actions) {
+        const r = actions.getBoundingClientRect();
+        const pad = 26; // tăng "hitbox" xung quanh cụm nút (dễ bấm hơn, ít tắt nhầm)
+        if (
+          e.clientX >= r.left - pad &&
+          e.clientX <= r.right + pad &&
+          e.clientY >= r.top - pad &&
+          e.clientY <= r.bottom + pad
+        ) {
+          return;
+        }
+      }
+
+      // Tương tự cho cụm nút "Chọn Xe" (đang ẩn/hiện theo animation)
+      const center = document.querySelector('.bottom-bar-center');
+      if (center) {
+        const r = center.getBoundingClientRect();
+        const pad = 18;
+        if (
+          e.clientX >= r.left - pad &&
+          e.clientX <= r.right + pad &&
+          e.clientY >= r.top - pad &&
+          e.clientY <= r.bottom + pad
+        ) {
+          return;
+        }
+      }
       
       // Click vào vùng trống bottom bar để đóng menu
       this.minimizePanel();
