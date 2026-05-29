@@ -1,0 +1,6 @@
+name = "mital-voice-stt"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# GROQ_API_KEY đặt bằng: npx wrangler secret put GROQ_API_KEY
